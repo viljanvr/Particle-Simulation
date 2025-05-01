@@ -10,7 +10,12 @@
 #include <vector>
 #include <stdlib.h>
 #include <stdio.h>
+
+#if defined(__APPLE__) && defined(__aarch64__)
+#include <GLUT/glut.h>
+#else
 #include <GL/glut.h>
+#endif
 
 /* macros */
 

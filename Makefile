@@ -2,15 +2,26 @@ INC_WINDOWS = include/windows
 INC_LINUX   = include/linux
 INC_COMMON  = include/common
 
-ifeq ($(OS),Windows_NT)
-	RM = rm -vf # might have to be adjusted to del for some Windows distros
-	INCLUDE = $(INC_WINDOWS)
-	CXX_EXTRA_FLAGS = -Llib -lfreeglut -lglu32 -lopengl32 -lpng12
-else
+UNAME_S := $(shell uname -s)
+UNAME_M := $(shell uname -m)
+ifeq ($(UNAME_S), Darwin)
+	ifeq ($(UNAME_M), arm64) # Apple Silicon
+		RM = rm -vf
+		INCLUDE = $(INC_LINUX) -I/opt/homebrew/include
+		#CXX_EXTRA_FLAGS = -lglut -lGLU -lGL -lpng
+		CXX_EXTRA_FLAGS = -framework GLUT -framework OpenGL -L/opt/homebrew/lib -lpng
+	else # Apple Intel
+	endif
+else ifeq ($(UNAME_M), Linux) # Linux
 	RM = rm -vf
 	INCLUDE = $(INC_LINUX)
 	CXX_EXTRA_FLAGS = -lglut -lGLU -lGL -lpng
+else ifeq ($(OS),Windows_NT) # Windows
+	RM = rm -vf # might have to be adjusted to del for some Windows distros
+	INCLUDE = $(INC_WINDOWS)
+	CXX_EXTRA_FLAGS = -Llib -lfreeglut -lglu32 -lopengl32 -lpng12
 endif
+
 
 CXXFLAGS = -g -O2 -Wall -Wno-sign-compare -I$(INCLUDE) -I$(INC_COMMON) -DHAVE_CONFIG_H 
 CXX = g++
