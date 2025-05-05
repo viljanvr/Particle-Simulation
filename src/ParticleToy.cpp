@@ -2,6 +2,8 @@
 //
 
 #include "Particle.h"
+#include "Force.h"
+#include "GravityForce.h"
 #include "SpringForce.h"
 #include "RodConstraint.h"
 #include "CircularWireConstraint.h"
@@ -20,7 +22,7 @@
 /* macros */
 
 /* external definitions (from solver) */
-extern void simulation_step( std::vector<Particle*> pVector, float dt );
+extern void simulation_step( std::vector<Particle*> pVector, std::vector<Force*> fVector, float dt );
 
 /* global variables */
 
@@ -41,7 +43,8 @@ static int mouse_shiftclick[3];
 static int omx, omy, mx, my;
 static int hmx, hmy;
 
-static SpringForce * delete_this_dummy_spring = NULL;
+static std::vector<Force*> fVector;
+
 static RodConstraint * delete_this_dummy_rod = NULL;
 static CircularWireConstraint * delete_this_dummy_wire = NULL;
 
@@ -55,13 +58,10 @@ free/clear/allocate simulation data
 static void free_data ( void )
 {
 	pVector.clear();
+    fVector.clear();
 	if (delete_this_dummy_rod) {
 		delete delete_this_dummy_rod;
 		delete_this_dummy_rod = NULL;
-	}
-	if (delete_this_dummy_spring) {
-		delete delete_this_dummy_spring;
-		delete_this_dummy_spring = NULL;
 	}
 	if (delete_this_dummy_wire) {
 		delete delete_this_dummy_wire;
@@ -90,10 +90,12 @@ static void init_system(void)
 	pVector.push_back(new Particle(center + offset));
 	pVector.push_back(new Particle(center + offset + offset));
 	pVector.push_back(new Particle(center + offset + offset + offset));
-	
+
+    fVector.push_back(new GravityForce(pVector, Vec2f(0.0, -0.1)));
+
 	// You shoud replace these with a vector generalized forces and one of
 	// constraints...
-	delete_this_dummy_spring = new SpringForce(pVector[0], pVector[1], dist, 1.0, 1.0);
+//	delete_this_dummy_spring = new SpringForce(pVector[0], pVector[1], dist, 1.0, 1.0);
 	delete_this_dummy_rod = new RodConstraint(pVector[1], pVector[2], dist);
 	delete_this_dummy_wire = new CircularWireConstraint(pVector[0], center, dist);
 }
@@ -131,12 +133,12 @@ static void post_display ( void )
 			sprintf(filename, "../snapshots/img%.5i.png", frame_number / FRAME_INTERVAL);
 			printf("Dumped %s.\n", filename);
 			saveImageRGBA(filename, buffer, w, h);
-			
+
 			free(buffer);
 		}
 	}
 	frame_number++;
-	
+
 	glutSwapBuffers ();
 }
 
@@ -153,8 +155,13 @@ static void draw_particles ( void )
 static void draw_forces ( void )
 {
 	// change this to iteration over full set
-	if (delete_this_dummy_spring)
-		delete_this_dummy_spring->draw();
+
+//	int size = fVector.size();
+//
+//	for(int ii=0; ii< size; ii++)
+//	{
+//		fVector[ii]->draw();
+//	}
 }
 
 static void draw_constraints ( void )
@@ -178,7 +185,7 @@ static void get_from_UI ()
 	// int size, flag;
 	int hi, hj;
 	// float x, y;
-	if ( !mouse_down[0] && !mouse_down[2] && !mouse_release[0] 
+	if ( !mouse_down[0] && !mouse_down[2] && !mouse_release[0]
 	&& !mouse_shiftclick[0] && !mouse_shiftclick[2] ) return;
 
 	i = (int)((       mx /(float)win_x)*N);
@@ -210,6 +217,7 @@ static void remap_GUI()
 	{
 		pVector[ii]->m_Position[0] = pVector[ii]->m_ConstructPos[0];
 		pVector[ii]->m_Position[1] = pVector[ii]->m_ConstructPos[1];
+        pVector[ii]->reset();
 	}
 }
 
@@ -273,9 +281,11 @@ static void reshape_func ( int width, int height )
 
 static void idle_func ( void )
 {
-	if ( dsim ) simulation_step( pVector, dt );
-	else        {get_from_UI();remap_GUI();}
-
+	if ( dsim ) {
+    	simulation_step( pVector, fVector, dt );
+	} else {
+		get_from_UI();remap_GUI();
+	}
 	glutSetWindow ( win_id );
 	glutPostRedisplay ();
 }
@@ -283,7 +293,6 @@ static void idle_func ( void )
 static void display_func ( void )
 {
 	pre_display ();
-
 	draw_forces();
 	draw_constraints();
 	draw_particles();
@@ -356,9 +365,9 @@ int main ( int argc, char ** argv )
 	dsim = 0;
 	dump_frames = 0;
 	frame_number = 0;
-	
+
 	init_system();
-	
+
 	win_x = 512;
 	win_y = 512;
 	open_glut_window ();
