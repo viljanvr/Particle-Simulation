@@ -91,13 +91,15 @@ static void init_system(void)
 	pVector.push_back(new Particle(center + offset + offset));
 	pVector.push_back(new Particle(center + offset + offset + offset));
 
-    fVector.push_back(new GravityForce(pVector, Vec2f(0.0, -0.1)));
+	fVector.push_back(new GravityForce({pVector[1], pVector[2]}, Vec2f(0.0, -0.1)));
+	fVector.push_back(new SpringForce(pVector[0], pVector[1], dist, 0.3, 0.3));
+	fVector.push_back(new SpringForce(pVector[1], pVector[2], dist, 0.3, 0.3));
 
 	// You shoud replace these with a vector generalized forces and one of
 	// constraints...
-//	delete_this_dummy_spring = new SpringForce(pVector[0], pVector[1], dist, 1.0, 1.0);
-	delete_this_dummy_rod = new RodConstraint(pVector[1], pVector[2], dist);
-	delete_this_dummy_wire = new CircularWireConstraint(pVector[0], center, dist);
+	// delete_this_dummy_spring = new SpringForce(pVector[0], pVector[1], dist, 1.0, 1.0);
+	// delete_this_dummy_rod = new RodConstraint(pVector[1], pVector[2], dist);
+	// delete_this_dummy_wire = new CircularWireConstraint(pVector[0], center, dist);
 }
 
 /*
@@ -154,14 +156,11 @@ static void draw_particles ( void )
 
 static void draw_forces ( void )
 {
-	// change this to iteration over full set
-
-//	int size = fVector.size();
-//
-//	for(int ii=0; ii< size; ii++)
-//	{
-//		fVector[ii]->draw();
-//	}
+	int size = fVector.size();
+	for(int ii=0; ii< size; ii++)
+	{
+		fVector[ii]->draw();
+	}
 }
 
 static void draw_constraints ( void )
@@ -219,6 +218,8 @@ static void remap_GUI()
 		pVector[ii]->m_Position[1] = pVector[ii]->m_ConstructPos[1];
         pVector[ii]->reset();
 	}
+	// For testing
+	// pVector[0]->m_Velocity = Vec2f(-0.1, 0.0);
 }
 
 /*
