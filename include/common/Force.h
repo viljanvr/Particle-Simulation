@@ -5,6 +5,6 @@ class Force {
 public:
     virtual ~Force() = default;
     virtual void applyForce() = 0;
-    virtual void draw();
+    virtual void draw() = 0;
 
 };
