@@ -3,7 +3,7 @@
 #include "linearSolver.h"
 #include "SparseMatrix.h"
 
-class JWJ : implicitMatrix {
+class JWJ : public implicitMatrix {
 public:
     JWJ(SparseMatrix J, std::vector<double> W);
 

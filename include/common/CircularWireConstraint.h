@@ -2,15 +2,18 @@
 
 #include "Particle.h"
 
-class CircularWireConstraint {
- public:
-  CircularWireConstraint(Particle *p, const Vec2f & center, const double radius);
+#include "Constraint.h"
 
-  void draw();
+class CircularWireConstraint : public Constraint {
+public:
+    CircularWireConstraint(Particle *p, const Vec2f &center, const double radius, size_t index);
+    std::vector<JacobianEntry> getJacobian() override;
+    std::vector<JacobianEntry> getJacobianDeriv() override;
 
- private:
+    void draw() override;
 
-  Particle * const m_p;
-  Vec2f const m_center;
-  double const m_radius;
+private:
+    Particle *const m_p;
+    Vec2f const m_center;
+    double const m_radius;
 };

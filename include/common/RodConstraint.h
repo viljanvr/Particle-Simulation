@@ -9,7 +9,7 @@ public:
     std::vector<JacobianEntry> getJacobian() override;
     std::vector<JacobianEntry> getJacobianDeriv() override;
 
-    void draw();
+    void draw() override;
 
 private:
     Particle *const m_p1;
