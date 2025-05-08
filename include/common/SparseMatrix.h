@@ -8,18 +8,13 @@ public:
     void matVecMult(double x[], double r[]);
     void matTransVecMult(double x[], double r[]);
     void addCell(size_t i, size_t j, double val);
-    std::pair<size_t, size_t> getDim() {
-        return {m_rows, m_cols};
-    };
-
+    std::pair<size_t, size_t> getDim() { return {m_rows, m_cols}; };
 
 
 private:
     size_t m_rows;
     size_t m_cols;
-    std::vector<size_t> m_i;
-    std::vector<size_t> m_j;
+    std::vector<size_t> m_i; // rows
+    std::vector<size_t> m_j; // columns
     std::vector<double> m_v;
 };
-
-

@@ -84,9 +84,9 @@ static void init_system(void) {
     // Create three particles, attach them to each other, then add a
     // circular wire constraint to the first.
 
-    pVector.push_back(new Particle(center + offset));
-    pVector.push_back(new Particle(center + offset + offset));
-    pVector.push_back(new Particle(center + offset + offset + offset));
+    pVector.push_back(new Particle(center + offset, 0));
+    pVector.push_back(new Particle(center + offset + offset, 1));
+    pVector.push_back(new Particle(center + offset + offset + offset, 2));
 
     fVector.push_back(new GravityForce({pVector[1], pVector[2]}, Vec2f(0.0, -0.1)));
     fVector.push_back(new SpringForce(pVector[0], pVector[1], dist, 0.3, 0.3));
