@@ -60,12 +60,13 @@ void simulation_step(std::vector<Particle *> pVector, std::vector<Force *> fVect
 
     double right_hand_side[pVector.size() * DIMS];
     for (size_t i = 0; i < pVector.size() * DIMS; ++i) {
-        right_hand_side[i] = - jDerivQDeriv[i] - jwq[i];
+        right_hand_side[i] = -jDerivQDeriv[i] - jwq[i];
     }
 
     double lambda[pVector.size() * DIMS];
 
-    ConjGrad(pVector.size() * DIMS, &jwj, lambda, right_hand_side, 0.1, NULL);
+    int steps = 0;
+    ConjGrad(pVector.size() * DIMS, &jwj, lambda, right_hand_side, 0.1, &steps);
 
     double qHat[pVector.size() * DIMS];
     J.matVecMult(lambda, qHat);
