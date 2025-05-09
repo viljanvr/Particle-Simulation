@@ -28,6 +28,7 @@ void SparseMatrix::addCell(size_t i, size_t j, double val) {
 }
 
 void SparseMatrix::debugPrint() {
+    std::cout << m_rows << ", " << m_cols << std::endl;
     std::vector<std::vector<double>> materialized_matrix(m_rows, std::vector<double>(m_cols, 0));
     for (size_t index = 0; index < m_v.size(); index++) {
         materialized_matrix[m_i[index]][m_j[index]] = m_v[index];

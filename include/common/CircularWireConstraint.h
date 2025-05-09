@@ -9,6 +9,8 @@ public:
     CircularWireConstraint(Particle *p, const Vec2f &center, const double radius, size_t index);
     std::vector<JacobianEntry> getJacobian() override;
     std::vector<JacobianEntry> getJacobianDeriv() override;
+    double getC() override;
+    double getCDeriv() override;
 
     void draw() override;
 

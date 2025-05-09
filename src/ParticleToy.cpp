@@ -69,22 +69,22 @@ static void clear_data(void) {
 static void init_system(void) {
     const double dist = 0.2;
     const Vec2f center(0.0, 0.0);
-    const Vec2f offset(dist, 0.0);
+    const Vec2f offset(0.0, dist);
 
     // Create three particles, attach them to each other, then add a
     // circular wire constraint to the first.
 
-    for (size_t i = 0; i < 3; i++) {}
-
     pVector.push_back(new Particle(center + offset, 0));
-    pVector.push_back(new Particle(center + offset + offset, 1));
-    pVector.push_back(new Particle(center + offset + offset + offset, 2));
+    pVector.push_back(new Particle(center + offset + Vec2f(dist, 0.0), 1));
+    //pVector.push_back(new Particle(center + Vec2f(0, -dist - 0.03), 0));
+    //pVector.push_back(new Particle(center + Vec2f(0, - 2 * dist - 0.03), 1));
 
-    fVector.push_back(new GravityForce({pVector[1], pVector[2]}, Vec2f(0.0, -0.1)));
-    fVector.push_back(new SpringForce(pVector[0], pVector[1], dist, 0.3, 0.3));
-    fVector.push_back(new SpringForce(pVector[1], pVector[2], dist, 0.3, 0.3));
+    fVector.push_back(new GravityForce({pVector[0], pVector[1]}, Vec2f(0.00, -0.03)));
 
     cVector.push_back(new CircularWireConstraint(pVector[0], center, dist, 0));
+    cVector.push_back(new RodConstraint(pVector[0], pVector[1], dist, 1));
+
+
 
 
     // You shoud replace these with a vector generalized forces and one of

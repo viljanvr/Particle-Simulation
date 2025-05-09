@@ -14,8 +14,8 @@ std::vector<JacobianEntry> CircularWireConstraint::getJacobian() {
 }
 
 std::vector<JacobianEntry> CircularWireConstraint::getJacobianDeriv() {
-    return {JacobianEntry{m_p, 2.0 * (m_p->m_Velocity[0] - m_center[0]),
-                          2.0 * (m_p->m_Velocity[1] - m_center[1])}};
+    return {JacobianEntry{m_p, 2.0 * (m_p->m_Velocity[0]),
+                          2.0 * (m_p->m_Velocity[1])}};
 }
 
 static void draw_circle(const Vec2f &vect, float radius) {
@@ -26,6 +26,16 @@ static void draw_circle(const Vec2f &vect, float radius) {
         glVertex2f(vect[0] + cos(degInRad) * radius, vect[1] + sin(degInRad) * radius);
     }
     glEnd();
+}
+
+double CircularWireConstraint::getC() {
+    return pow(m_p->m_Position[0] - m_center[0], 2) +
+        pow(m_p->m_Position[1] - m_center[1], 2) - pow(m_radius, 2);
+}
+
+double CircularWireConstraint::getCDeriv() {
+    return 2 * (m_p->m_Position[0] - m_center[0]) * (m_p->m_Velocity[0]) +
+        2 * (m_p->m_Position[1] - m_center[1]) * (m_p->m_Velocity[1]);
 }
 
 CircularWireConstraint::CircularWireConstraint(Particle *p, const Vec2f &center, const double radius, size_t index) :

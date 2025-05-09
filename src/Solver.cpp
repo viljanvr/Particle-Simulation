@@ -9,6 +9,8 @@
 #define RAND (((rand() % 2000) / 1000.f) - 1.f)
 
 #define DIMS 2 // Particle dimension
+#define KS 0.5
+#define KD 0.5
 
 void simulation_step(std::vector<Particle *> pVector, std::vector<Force *> fVector, std::vector<Constraint *> cVector,
                      float dt) {
@@ -20,25 +22,19 @@ void simulation_step(std::vector<Particle *> pVector, std::vector<Force *> fVect
         f->applyForce();
     }
 
-    SparseMatrix J(pVector.size() * DIMS, cVector.size());
-    SparseMatrix JDeriv(pVector.size() * DIMS, cVector.size());
+    SparseMatrix J(cVector.size(), pVector.size() * DIMS);
+    SparseMatrix JDeriv(cVector.size(), pVector.size() * DIMS);
 
     for (auto c: cVector) {
         for (auto jacobianEntry: c->getJacobian()) {
-            J.addCell(jacobianEntry.p->m_index * DIMS, c->m_index, jacobianEntry.x);
-            J.addCell(jacobianEntry.p->m_index * DIMS + 1, c->m_index, jacobianEntry.y);
+            J.addCell(c->m_index, jacobianEntry.p->m_index * DIMS, jacobianEntry.x);
+            J.addCell(c->m_index, jacobianEntry.p->m_index * DIMS + 1, jacobianEntry.y);
         }
         for (auto jacobianEntry: c->getJacobianDeriv()) {
-            JDeriv.addCell(jacobianEntry.p->m_index * DIMS, c->m_index, jacobianEntry.x);
-            JDeriv.addCell(jacobianEntry.p->m_index * DIMS + 1, c->m_index, jacobianEntry.y);
+            JDeriv.addCell(c->m_index, jacobianEntry.p->m_index * DIMS, jacobianEntry.x);
+            JDeriv.addCell(c->m_index, jacobianEntry.p->m_index * DIMS + 1, jacobianEntry.y);
         }
     }
-
-    std::cout << "J:" << std::endl;
-    J.debugPrint();
-
-    std::cout << "JDeriv:" << std::endl;
-    JDeriv.debugPrint();
 
     std::vector<double> W;
     double qDeriv[pVector.size() * DIMS];
@@ -55,63 +51,32 @@ void simulation_step(std::vector<Particle *> pVector, std::vector<Force *> fVect
         wq[2 * i] = p->m_Forces[0] / p->m_Mass;
         wq[2 * i + 1] = p->m_Forces[1] / p->m_Mass;
     }
-    std::cout << "qDeriv:" << std::endl;
-    for (auto x : qDeriv) {
-        std::cout << x << std::endl;
-    }
-    std::cout << std::endl;
 
     JWJ jwj(J, W);
 
-    double jDerivQDeriv[pVector.size() * DIMS];
+    // JDeriv: (#const, 2 * #particles), QDeriv: (2 * #particles) -> #const
+    double jDerivQDeriv[cVector.size()];
     JDeriv.matVecMult(qDeriv, jDerivQDeriv);
 
-    std::cout << "jDerivQDeriv:" << std::endl;
-    for (auto x: jDerivQDeriv) {
-        std::cout << x << std::endl;
-    }
-    std::cout << std::endl;
 
-
-    double jwq[pVector.size() * DIMS];
+    // J: (#const, 2 * #particles), WQ: (2 * #particles) -> #const
+    double jwq[cVector.size()];
     J.matVecMult(wq, jwq);
 
-    std::cout << "jwq:" << std::endl;
-    for (auto x: jwq) {
-        std::cout << x << std::endl;
-    }
-    std::cout << std::endl;
-
-    double right_hand_side[pVector.size() * DIMS];
-    for (size_t i = 0; i < pVector.size() * DIMS; ++i) {
-        right_hand_side[i] = -jDerivQDeriv[i] - jwq[i];
+    double right_hand_side[cVector.size()];
+    for (size_t i = 0; i < cVector.size(); ++i) {
+        right_hand_side[i] = (-jDerivQDeriv[i] - jwq[i]) - cVector[i]->getC() * KS - cVector[i]->getCDeriv() * KD;
     }
 
-    std::cout << "right_hand_side:" << std::endl;
-    for (auto x: right_hand_side) {
-        std::cout << x << std::endl;
-    }
-    std::cout << std::endl;
 
-    double lambda[pVector.size() * DIMS];
+    double lambda[cVector.size()];
 
-    int steps = 0;
-    ConjGrad(pVector.size() * DIMS, &jwj, lambda, right_hand_side, 0.1, &steps);
-
-    std::cout << "lambda:" << std::endl;
-    for (auto x: lambda) {
-        std::cout << x << std::endl;
-    }
-    std::cout << std::endl;
+    int steps = 10;
+    ConjGrad(cVector.size(), &jwj, lambda, right_hand_side, 0.00000000001, &steps);
 
     double qHat[pVector.size() * DIMS];
-    J.matVecMult(lambda, qHat);
+    J.matTransVecMult(lambda, qHat);
 
-    std::cout << "qHat:" << std::endl;
-    for (auto x: qHat) {
-        std::cout << x << std::endl;
-    }
-    std::cout << std::endl;
 
     for (size_t i = 0; i < pVector.size(); ++i) {
         auto p = pVector[i];

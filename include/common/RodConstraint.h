@@ -3,11 +3,13 @@
 #include "Constraint.h"
 #include "Particle.h"
 
-class RodConstraint : Constraint {
+class RodConstraint : public Constraint {
 public:
     RodConstraint(Particle *p1, Particle *p2, double dist, size_t index);
     std::vector<JacobianEntry> getJacobian() override;
     std::vector<JacobianEntry> getJacobianDeriv() override;
+    double getC() override;
+    double getCDeriv() override;
 
     void draw() override;
 

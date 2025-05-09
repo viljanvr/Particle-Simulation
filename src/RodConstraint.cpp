@@ -22,6 +22,18 @@ std::vector<JacobianEntry> RodConstraint::getJacobianDeriv() {
                           -2.0 * (m_p1->m_Velocity[1] - m_p2->m_Velocity[1])}};
 }
 
+double RodConstraint::getC() {
+    return pow(m_p1->m_Position[0] - m_p2->m_Position[0], 2) +
+        pow(m_p1->m_Position[1] - m_p2->m_Position[1], 2) - pow(m_dist, 2);
+}
+
+double RodConstraint::getCDeriv() {
+    return 2 * (m_p1->m_Position[0] - m_p2->m_Position[0]) * (m_p1->m_Velocity[0] - m_p2->m_Velocity[0]) +
+        2 * (m_p1->m_Position[1] - m_p2->m_Position[1]) * (m_p1->m_Velocity[1] - m_p2->m_Velocity[1]);
+}
+
+
+
 void RodConstraint::draw() {
     glBegin(GL_LINES);
     glColor3f(0.8, 0.7, 0.6);
