@@ -10,6 +10,8 @@ public:
     void addCell(size_t i, size_t j, double val);
     std::pair<size_t, size_t> getDim() { return {m_rows, m_cols}; };
 
+     void debugPrint();
+
 
 private:
     size_t m_rows;

@@ -34,6 +34,12 @@ void simulation_step(std::vector<Particle *> pVector, std::vector<Force *> fVect
         }
     }
 
+    std::cout << "J:" << std::endl;
+    J.debugPrint();
+
+    std::cout << "JDeriv:" << std::endl;
+    JDeriv.debugPrint();
+
     std::vector<double> W;
     double qDeriv[pVector.size() * DIMS];
     double wq[pVector.size() * DIMS];
@@ -49,27 +55,63 @@ void simulation_step(std::vector<Particle *> pVector, std::vector<Force *> fVect
         wq[2 * i] = p->m_Forces[0] / p->m_Mass;
         wq[2 * i + 1] = p->m_Forces[1] / p->m_Mass;
     }
+    std::cout << "qDeriv:" << std::endl;
+    for (auto x : qDeriv) {
+        std::cout << x << std::endl;
+    }
+    std::cout << std::endl;
 
     JWJ jwj(J, W);
 
     double jDerivQDeriv[pVector.size() * DIMS];
     JDeriv.matVecMult(qDeriv, jDerivQDeriv);
 
+    std::cout << "jDerivQDeriv:" << std::endl;
+    for (auto x: jDerivQDeriv) {
+        std::cout << x << std::endl;
+    }
+    std::cout << std::endl;
+
+
     double jwq[pVector.size() * DIMS];
     J.matVecMult(wq, jwq);
+
+    std::cout << "jwq:" << std::endl;
+    for (auto x: jwq) {
+        std::cout << x << std::endl;
+    }
+    std::cout << std::endl;
 
     double right_hand_side[pVector.size() * DIMS];
     for (size_t i = 0; i < pVector.size() * DIMS; ++i) {
         right_hand_side[i] = -jDerivQDeriv[i] - jwq[i];
     }
 
+    std::cout << "right_hand_side:" << std::endl;
+    for (auto x: right_hand_side) {
+        std::cout << x << std::endl;
+    }
+    std::cout << std::endl;
+
     double lambda[pVector.size() * DIMS];
 
     int steps = 0;
     ConjGrad(pVector.size() * DIMS, &jwj, lambda, right_hand_side, 0.1, &steps);
 
+    std::cout << "lambda:" << std::endl;
+    for (auto x: lambda) {
+        std::cout << x << std::endl;
+    }
+    std::cout << std::endl;
+
     double qHat[pVector.size() * DIMS];
     J.matVecMult(lambda, qHat);
+
+    std::cout << "qHat:" << std::endl;
+    for (auto x: qHat) {
+        std::cout << x << std::endl;
+    }
+    std::cout << std::endl;
 
     for (size_t i = 0; i < pVector.size(); ++i) {
         auto p = pVector[i];

@@ -23,7 +23,7 @@ else ifeq ($(OS),Windows_NT) # Windows
 endif
 
 
-CXXFLAGS = --std=c++17 -g -O2 -Wall -Wno-sign-compare -I$(INCLUDE) -I$(INC_COMMON) -DHAVE_CONFIG_H 
+CXXFLAGS = --std=c++17 -g -O2 -Wall -Wno-sign-compare -I$(INCLUDE) -I$(INC_COMMON) -DHAVE_CONFIG_H -DDEBUG
 CXX = g++
 
 SRC_DIR = src
