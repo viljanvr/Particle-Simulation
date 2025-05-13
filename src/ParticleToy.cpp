@@ -1,6 +1,12 @@
 // ParticleToy.cpp : Defines the entry point for the console application.
 //
 
+#include <EulerScheme.h>
+#include <IntegrationScheme.h>
+#include <MidpointScheme.h>
+#include <RungeKuttaScheme.h>
+
+
 #include "CircularWireConstraint.h"
 #include "Force.h"
 #include "GravityForce.h"
@@ -22,7 +28,7 @@
 /* macros */
 
 /* external definitions (from solver) */
-extern void simulation_step(std::vector<Particle *> pVector, std::vector<Force *> fVector, std::vector<Constraint *> cVector, float dt);
+extern void simulation_step(std::vector<Particle *> pVector, std::vector<Force *> fVector, std::vector<Constraint *> cVector, float dt, IntegrationScheme& integration_scheme);
 
 /* global variables */
 
@@ -45,6 +51,8 @@ static int hmx, hmy;
 
 static std::vector<Force *> fVector;
 static std::vector<Constraint *> cVector;
+
+static std::unique_ptr<IntegrationScheme> integration_scheme = std::make_unique<EulerScheme>();
 
 /*
 ----------------------------------------------------------------------
@@ -230,6 +238,21 @@ static void key_func(unsigned char key, int x, int y) {
         case ' ':
             dsim = !dsim;
             break;
+        case 'e':
+        case 'E':
+            integration_scheme = std::make_unique<EulerScheme>();
+            std::cout << "Switched to EulerScheme." << std::endl;
+            break;
+        case 'm':
+        case 'M':
+            integration_scheme = std::make_unique<MidpointScheme>();
+            std::cout << "Switched to MidpointScheme." << std::endl;
+            break;
+        case 'r':
+        case 'R':
+            integration_scheme = std::make_unique<RungeKuttaScheme>();
+            std::cout << "Switched to RangeKuttaScheme." << std::endl;
+            break;
     }
 }
 
@@ -263,7 +286,7 @@ static void reshape_func(int width, int height) {
 
 static void idle_func(void) {
     if (dsim) {
-        simulation_step(pVector, fVector, cVector, dt);
+        simulation_step(pVector, fVector, cVector, dt, *integration_scheme);
     } else {
         get_from_UI();
         remap_GUI();

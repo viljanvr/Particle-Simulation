@@ -1,3 +1,4 @@
+#include <EulerScheme.h>
 #include <vector>
 #include "Constraint.h"
 #include "Force.h"
@@ -12,16 +13,19 @@
 #define KS 0.5
 #define KD 0.5
 
-void simulation_step(std::vector<Particle *> pVector, std::vector<Force *> fVector, std::vector<Constraint *> cVector,
-                     float dt) {
-
-    for (auto p: pVector) { // Reset forces
-        p->m_Forces = Vec2f(0.0, 0.0);
+void reset_particle_forces(std::vector<Particle *> pVector) {
+    for (auto particle : pVector) {
+        particle->m_Forces = Vec2f(0.0, 0.0);
     }
-    for (auto f: fVector) { // Recalculate forces
-        f->applyForce();
-    }
+}
 
+void apply_forces_to_particles(std::vector<Force *> fVector) {
+    for (auto force : fVector) {
+        force->applyForce();
+    }
+}
+
+void apply_constraint_forces_to_particles(std::vector<Particle *> pVector, std::vector<Constraint *> cVector) {
     SparseMatrix J(cVector.size(), pVector.size() * DIMS);
     SparseMatrix JDeriv(cVector.size(), pVector.size() * DIMS);
 
@@ -83,11 +87,20 @@ void simulation_step(std::vector<Particle *> pVector, std::vector<Force *> fVect
         p->m_Forces[0] += qHat[2 * i];
         p->m_Forces[1] += qHat[2 * i + 1];
     }
+}
 
+void compute_total_forces(std::vector<Particle *> pVector, std::vector<Force *> fVector, std::vector<Constraint* > cVector) {
+    reset_particle_forces(pVector);
 
-    for (size_t ii = 0; ii < pVector.size(); ii++) {
-        pVector[ii]->m_Position += dt * pVector[ii]->m_Velocity; // Euler
-        // Vec2f random_move = DAMP*pVector[ii]->m_Velocity + Vec2f(RAND,RAND) * 0.005;	// Random movement
-        pVector[ii]->m_Velocity = pVector[ii]->m_Velocity + dt * (pVector[ii]->m_Forces / pVector[ii]->m_Mass);
-    }
+    apply_forces_to_particles(fVector);
+
+    apply_constraint_forces_to_particles(pVector, cVector);
+}
+
+void simulation_step(std::vector<Particle *> pVector, std::vector<Force *> fVector, std::vector<Constraint *> cVector,
+                     float dt, IntegrationScheme& integration_scheme) {
+
+    integration_scheme.updateParticlesBasedOnForce(pVector, [&]() {
+        compute_total_forces(pVector, fVector, cVector);
+    } ,dt);
 }
