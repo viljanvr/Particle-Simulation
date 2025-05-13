@@ -10,7 +10,7 @@
 #define RAND (((rand() % 2000) / 1000.f) - 1.f)
 
 #define DIMS 2 // Particle dimension
-#define KS 0.5
+#define KS 0.1
 #define KD 0.5
 
 void reset_particle_forces(std::vector<Particle *> pVector) {

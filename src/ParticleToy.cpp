@@ -83,7 +83,7 @@ static void init_system(void) {
     // circular wire constraint to the first.
 
     pVector.push_back(new Particle(center + offset, 0));
-    pVector.push_back(new Particle(center + offset + Vec2f(dist, 0.0), 1));
+    pVector.push_back(new Particle(center + offset + Vec2f(0.001, dist), 1));
     //pVector.push_back(new Particle(center + Vec2f(0, -dist - 0.03), 0));
     //pVector.push_back(new Particle(center + Vec2f(0, - 2 * dist - 0.03), 1));
 
