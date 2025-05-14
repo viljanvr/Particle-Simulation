@@ -13,14 +13,14 @@
 #define KS 1.0
 #define KD 1.0
 
-void reset_particle_forces(std::vector<Particle *> pVector) {
-    for (auto particle : pVector) {
+void reset_particle_forces(const std::vector<Particle *>& pVector) {
+    for (const auto particle : pVector) {
         particle->m_Forces = Vec2f(0.0, 0.0);
     }
 }
 
-void apply_forces_to_particles(std::vector<Force *> fVector) {
-    for (auto force : fVector) {
+void apply_forces_to_particles(const std::vector<Force *>& fVector) {
+    for (const auto force : fVector) {
         force->applyForce();
     }
 }
@@ -92,7 +92,8 @@ void apply_constraint_forces_to_particles(std::vector<Particle *> pVector, std::
     }
 }
 
-void compute_total_forces(std::vector<Particle *> pVector, std::vector<Force *> fVector, std::vector<Constraint* > cVector) {
+void compute_total_forces(const std::vector<Particle *>& pVector, const std::vector<Force *>& fVector,
+                          const std::vector<Constraint *> &cVector) {
     reset_particle_forces(pVector);
 
     apply_forces_to_particles(fVector);
@@ -100,8 +101,9 @@ void compute_total_forces(std::vector<Particle *> pVector, std::vector<Force *> 
     apply_constraint_forces_to_particles(pVector, cVector);
 }
 
-void simulation_step(std::vector<Particle *> pVector, std::vector<Force *> fVector, std::vector<Constraint *> cVector,
-                     float dt, IntegrationScheme& integration_scheme) {
+void simulation_step(const std::vector<Particle *> &pVector, const std::vector<Force *> &fVector,
+                     const std::vector<Constraint *> &cVector,
+                     const float dt, IntegrationScheme& integration_scheme) {
 
     integration_scheme.updateParticlesBasedOnForce(pVector, [&]() {
         compute_total_forces(pVector, fVector, cVector);

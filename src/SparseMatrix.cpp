@@ -37,8 +37,8 @@ void SparseMatrix::debugPrint() const {
     for (size_t index = 0; index < m_v.size(); index++) {
         materialized_matrix[m_i[index]][m_j[index]] = m_v[index];
     }
-    for (auto row: materialized_matrix) {
-        for (auto col: row) {
+    for (const auto& row: materialized_matrix) {
+        for (const auto col: row) {
             std::cout << std::setw(10) << col << " ";
         }
         std::cout << std::endl;

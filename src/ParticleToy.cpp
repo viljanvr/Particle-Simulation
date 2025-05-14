@@ -32,8 +32,8 @@
 /* macros */
 
 /* external definitions (from solver) */
-extern void simulation_step(std::vector<Particle *> pVector, std::vector<Force *> fVector,
-                            std::vector<Constraint *> cVector, float dt, IntegrationScheme &integration_scheme);
+extern void simulation_step(const std::vector<Particle *> &pVector, const std::vector<Force *> &fVector,
+                            const std::vector<Constraint *> &cVector, float dt, IntegrationScheme &integration_scheme);
 
 /* global variables */
 

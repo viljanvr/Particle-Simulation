@@ -44,6 +44,10 @@ $(OBJ_DIR):
 $(BIN_DIR):
 	mkdir -v $@
 
+# Special rule to suppress warnings from imageio.cpp
+obj/imageio.o: $(SRC_DIR)/imageio.cpp
+	$(CXX) -w $(CXXFLAGS) -o $@ -c $<
+
 obj/%.o: $(SRC_DIR)/%.cpp
 	$(CXX) $(CXXFLAGS) -o $@ -c $<
 
