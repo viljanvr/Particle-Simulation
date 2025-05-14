@@ -1,5 +1,7 @@
 #include "linearSolver.h"
 
+#include <iostream>
+
 // vector helper functions
 
 void vecAddEqual(int n, double r[], double v[]) {
@@ -46,6 +48,7 @@ double ConjGrad(int n, implicitMatrix *A, double x[], double b[],
 
     vecAssign(n, r, b);
     A->matVecMult(x, temp);
+
     vecDiffEqual(n, r, temp);
 
     rSqrLen = vecSqrLen(n, r);

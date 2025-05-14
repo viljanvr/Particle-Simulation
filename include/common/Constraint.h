@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Particle.h"
+#include <vector>
 
 struct JacobianEntry {
     Particle *const p;

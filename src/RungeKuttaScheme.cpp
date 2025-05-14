@@ -20,8 +20,8 @@ void RungeKuttaScheme::updateParticlesBasedOnForce(std::vector<Particle *> parti
     // Calculate k2
     for (size_t i = 0; i < particles.size(); i++) {
         Particle *particle = particles[i];
-        particle->m_Position = original_positions[i] + k1_velocities[0] * dt * 0.5;
-        particle->m_Velocity = original_positions[i] + k1_accelerations[0] * dt * 0.5;
+        particle->m_Position = original_positions[i] + k1_velocities[i] * dt * 0.5;
+        particle->m_Velocity = original_velocities[i] + k1_accelerations[i] * dt * 0.5;
     }
     updateForces();
     std::vector<Vec2f> k2_velocities;
@@ -34,8 +34,8 @@ void RungeKuttaScheme::updateParticlesBasedOnForce(std::vector<Particle *> parti
     // Calculate k3
     for (size_t i = 0; i < particles.size(); i++) {
         Particle *particle = particles[i];
-        particle->m_Position = original_positions[i] + k2_velocities[0] * dt * 0.5;
-        particle->m_Velocity = original_positions[i] + k2_accelerations[0] * dt * 0.5;
+        particle->m_Position = original_positions[i] + k2_velocities[i] * dt * 0.5;
+        particle->m_Velocity = original_velocities[i] + k2_accelerations[i] * dt * 0.5;
     }
     updateForces();
     std::vector<Vec2f> k3_velocities;
@@ -48,8 +48,8 @@ void RungeKuttaScheme::updateParticlesBasedOnForce(std::vector<Particle *> parti
     // Calculate k4
     for (size_t i = 0; i < particles.size(); i++) {
         Particle *particle = particles[i];
-        particle->m_Position = original_positions[i] + k3_velocities[0] * dt;
-        particle->m_Velocity = original_positions[i] + k3_accelerations[0] * dt;
+        particle->m_Position = original_positions[i] + k3_velocities[i] * dt;
+        particle->m_Velocity = original_velocities[i] + k3_accelerations[i] * dt;
     }
     updateForces();
     std::vector<Vec2f> k4_velocities;

@@ -21,6 +21,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <vector>
+#include <memory>
 
 #if defined(__APPLE__) && defined(__aarch64__)
 #include <GLUT/glut.h>
@@ -85,9 +86,9 @@ static void init_system(void) {
     // circular wire constraint to the first.
 
     pVector.push_back(new Particle(center + offset, 0));
-    pVector.push_back(new Particle(center + offset + Vec2f(dist, 0.0), 1));
-    // pVector.push_back(new Particle(center + Vec2f(0, -dist - 0.03), 0));
-    // pVector.push_back(new Particle(center + Vec2f(0, - 2 * dist - 0.03), 1));
+    pVector.push_back(new Particle(center + offset + Vec2f(0.001, dist), 1));
+    //pVector.push_back(new Particle(center + Vec2f(0, -dist - 0.03), 0));
+    //pVector.push_back(new Particle(center + Vec2f(0, - 2 * dist - 0.03), 1));
 
     fVector.push_back(new GravityForce({pVector[0], pVector[1]}, Vec2f(0.00, -0.03)));
 
@@ -406,6 +407,7 @@ int main(int argc, char **argv) {
         N = atoi(argv[1]);
         dt = atof(argv[2]);
         d = atof(argv[3]);
+        fprintf(stderr, "Using customs : N=%d dt=%g d=%g\n", N, dt, d);
     }
 
     printf("\n\nHow to use this application:\n\n");

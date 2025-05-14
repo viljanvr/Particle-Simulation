@@ -10,8 +10,8 @@
 #define RAND (((rand() % 2000) / 1000.f) - 1.f)
 
 #define DIMS 2 // Particle dimension
-#define KS 0.5
-#define KD 0.5
+#define KS 1.0
+#define KD 1.0
 
 void reset_particle_forces(std::vector<Particle *> pVector) {
     for (auto particle : pVector) {
@@ -56,6 +56,7 @@ void apply_constraint_forces_to_particles(std::vector<Particle *> pVector, std::
         wq[2 * i + 1] = p->m_Forces[1] / p->m_Mass;
     }
 
+
     JWJ jwj(J, W);
 
     // JDeriv: (#const, 2 * #particles), QDeriv: (2 * #particles) -> #const
@@ -72,15 +73,18 @@ void apply_constraint_forces_to_particles(std::vector<Particle *> pVector, std::
         right_hand_side[i] = (-jDerivQDeriv[i] - jwq[i]) - cVector[i]->getC() * KS - cVector[i]->getCDeriv() * KD;
     }
 
-
     double lambda[cVector.size()];
 
-    int steps = 10;
-    ConjGrad(cVector.size(), &jwj, lambda, right_hand_side, 0.00000000001, &steps);
+    int steps = 0;
+    ConjGrad(cVector.size(), &jwj, lambda, right_hand_side, 0.000001, &steps);
+
+    if (steps >= 20) {
+        std::cout << "ConjGrad took many steps: " << std::endl;
+        std::cout << steps << std::endl;
+    }
 
     double qHat[pVector.size() * DIMS];
     J.matTransVecMult(lambda, qHat);
-
 
     for (size_t i = 0; i < pVector.size(); ++i) {
         auto p = pVector[i];
