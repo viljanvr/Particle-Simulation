@@ -3,5 +3,7 @@ bin/
 obj/
 
 .vscode/
+.cache/
 
 .DS_Store
+
