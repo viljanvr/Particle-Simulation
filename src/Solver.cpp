@@ -10,8 +10,8 @@
 #define RAND (((rand() % 2000) / 1000.f) - 1.f)
 
 #define DIMS 2 // Particle dimension
-#define KS 10.0
-#define KD 5.0
+#define KS 0.0
+#define KD 0.0
 
 void reset_particle_forces(std::vector<Particle *> pVector) {
     for (auto particle : pVector) {
@@ -105,7 +105,7 @@ void apply_constraint_forces_to_particles(std::vector<Particle *> pVector, std::
     double lambda[cVector.size()];
 
     int steps = 0;
-    ConjGrad(cVector.size(), &jwj, lambda, right_hand_side, 0.0001, &steps);
+    ConjGrad(cVector.size(), &jwj, lambda, right_hand_side, 0.000001, &steps);
 
     std::cout << "lambda" << std::endl;
     for (size_t i = 0; i < cVector.size(); ++i) {
