@@ -1,6 +1,12 @@
 // ParticleToy.cpp : Defines the entry point for the console application.
 //
 
+#include <EulerScheme.h>
+#include <IntegrationScheme.h>
+#include <MidpointScheme.h>
+#include <RungeKuttaScheme.h>
+
+
 #include "CircularWireConstraint.h"
 #include "Force.h"
 #include "GravityForce.h"
@@ -12,6 +18,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <vector>
+#include <memory>
 
 #if defined(__APPLE__) && defined(__aarch64__)
 #include <GLUT/glut.h>
@@ -22,7 +29,7 @@
 /* macros */
 
 /* external definitions (from solver) */
-extern void simulation_step(std::vector<Particle *> pVector, std::vector<Force *> fVector, std::vector<Constraint *> cVector, float dt);
+extern void simulation_step(std::vector<Particle *> pVector, std::vector<Force *> fVector, std::vector<Constraint *> cVector, float dt, IntegrationScheme& integration_scheme);
 
 /* global variables */
 
@@ -45,6 +52,8 @@ static int hmx, hmy;
 
 static std::vector<Force *> fVector;
 static std::vector<Constraint *> cVector;
+
+static std::unique_ptr<IntegrationScheme> integration_scheme = std::make_unique<EulerScheme>();
 
 /*
 ----------------------------------------------------------------------
@@ -75,7 +84,7 @@ static void init_system(void) {
     // circular wire constraint to the first.
 
     pVector.push_back(new Particle(center + offset, 0));
-    pVector.push_back(new Particle(center + offset + Vec2f(dist, 0.0), 1));
+    pVector.push_back(new Particle(center + offset + Vec2f(0.001, dist), 1));
     //pVector.push_back(new Particle(center + Vec2f(0, -dist - 0.03), 0));
     //pVector.push_back(new Particle(center + Vec2f(0, - 2 * dist - 0.03), 1));
 
@@ -230,6 +239,21 @@ static void key_func(unsigned char key, int x, int y) {
         case ' ':
             dsim = !dsim;
             break;
+        case 'e':
+        case 'E':
+            integration_scheme = std::make_unique<EulerScheme>();
+            std::cout << "Switched to EulerScheme." << std::endl;
+            break;
+        case 'm':
+        case 'M':
+            integration_scheme = std::make_unique<MidpointScheme>();
+            std::cout << "Switched to MidpointScheme." << std::endl;
+            break;
+        case 'r':
+        case 'R':
+            integration_scheme = std::make_unique<RungeKuttaScheme>();
+            std::cout << "Switched to RangeKuttaScheme." << std::endl;
+            break;
     }
 }
 
@@ -263,7 +287,7 @@ static void reshape_func(int width, int height) {
 
 static void idle_func(void) {
     if (dsim) {
-        simulation_step(pVector, fVector, cVector, dt);
+        simulation_step(pVector, fVector, cVector, dt, *integration_scheme);
     } else {
         get_from_UI();
         remap_GUI();
@@ -333,6 +357,7 @@ int main(int argc, char **argv) {
         N = atoi(argv[1]);
         dt = atof(argv[2]);
         d = atof(argv[3]);
+        fprintf(stderr, "Using customs : N=%d dt=%g d=%g\n", N, dt, d);
     }
 
     printf("\n\nHow to use this application:\n\n");

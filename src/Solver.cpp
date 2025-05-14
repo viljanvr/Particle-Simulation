@@ -1,3 +1,4 @@
+#include <EulerScheme.h>
 #include <vector>
 #include "Constraint.h"
 #include "Force.h"
@@ -9,19 +10,22 @@
 #define RAND (((rand() % 2000) / 1000.f) - 1.f)
 
 #define DIMS 2 // Particle dimension
-#define KS 0.5
-#define KD 0.5
+#define KS 1.0
+#define KD 1.0
 
-void simulation_step(std::vector<Particle *> pVector, std::vector<Force *> fVector, std::vector<Constraint *> cVector,
-                     float dt) {
-
-    for (auto p: pVector) { // Reset forces
-        p->m_Forces = Vec2f(0.0, 0.0);
+void reset_particle_forces(std::vector<Particle *> pVector) {
+    for (auto particle : pVector) {
+        particle->m_Forces = Vec2f(0.0, 0.0);
     }
-    for (auto f: fVector) { // Recalculate forces
-        f->applyForce();
-    }
+}
 
+void apply_forces_to_particles(std::vector<Force *> fVector) {
+    for (auto force : fVector) {
+        force->applyForce();
+    }
+}
+
+void apply_constraint_forces_to_particles(std::vector<Particle *> pVector, std::vector<Constraint *> cVector) {
     SparseMatrix J(cVector.size(), pVector.size() * DIMS);
     SparseMatrix JDeriv(cVector.size(), pVector.size() * DIMS);
 
@@ -52,6 +56,7 @@ void simulation_step(std::vector<Particle *> pVector, std::vector<Force *> fVect
         wq[2 * i + 1] = p->m_Forces[1] / p->m_Mass;
     }
 
+
     JWJ jwj(J, W);
 
     // JDeriv: (#const, 2 * #particles), QDeriv: (2 * #particles) -> #const
@@ -68,26 +73,38 @@ void simulation_step(std::vector<Particle *> pVector, std::vector<Force *> fVect
         right_hand_side[i] = (-jDerivQDeriv[i] - jwq[i]) - cVector[i]->getC() * KS - cVector[i]->getCDeriv() * KD;
     }
 
-
     double lambda[cVector.size()];
 
-    int steps = 10;
-    ConjGrad(cVector.size(), &jwj, lambda, right_hand_side, 0.00000000001, &steps);
+    int steps = 0;
+    ConjGrad(cVector.size(), &jwj, lambda, right_hand_side, 0.000001, &steps);
+
+    if (steps >= 20) {
+        std::cout << "ConjGrad took many steps: " << std::endl;
+        std::cout << steps << std::endl;
+    }
 
     double qHat[pVector.size() * DIMS];
     J.matTransVecMult(lambda, qHat);
-
 
     for (size_t i = 0; i < pVector.size(); ++i) {
         auto p = pVector[i];
         p->m_Forces[0] += qHat[2 * i];
         p->m_Forces[1] += qHat[2 * i + 1];
     }
+}
 
+void compute_total_forces(std::vector<Particle *> pVector, std::vector<Force *> fVector, std::vector<Constraint* > cVector) {
+    reset_particle_forces(pVector);
 
-    for (size_t ii = 0; ii < pVector.size(); ii++) {
-        pVector[ii]->m_Position += dt * pVector[ii]->m_Velocity; // Euler
-        // Vec2f random_move = DAMP*pVector[ii]->m_Velocity + Vec2f(RAND,RAND) * 0.005;	// Random movement
-        pVector[ii]->m_Velocity = pVector[ii]->m_Velocity + dt * (pVector[ii]->m_Forces / pVector[ii]->m_Mass);
-    }
+    apply_forces_to_particles(fVector);
+
+    apply_constraint_forces_to_particles(pVector, cVector);
+}
+
+void simulation_step(std::vector<Particle *> pVector, std::vector<Force *> fVector, std::vector<Constraint *> cVector,
+                     float dt, IntegrationScheme& integration_scheme) {
+
+    integration_scheme.updateParticlesBasedOnForce(pVector, [&]() {
+        compute_total_forces(pVector, fVector, cVector);
+    } ,dt);
 }
