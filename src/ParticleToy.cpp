@@ -8,10 +8,12 @@
 
 
 #include "CircularWireConstraint.h"
+#include "Constraint.h"
 #include "Force.h"
 #include "GravityForce.h"
 #include "Particle.h"
 #include "RodConstraint.h"
+#include "ScenePresets.h"
 #include "SpringForce.h"
 #include "imageio.h"
 
@@ -21,7 +23,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <vector>
-#include <memory>
 
 #if defined(__APPLE__) && defined(__aarch64__)
 #include <GLUT/glut.h>
@@ -32,8 +33,8 @@
 /* macros */
 
 /* external definitions (from solver) */
-extern void simulation_step(std::vector<Particle *> pVector, std::vector<Force *> fVector,
-                            std::vector<Constraint *> cVector, float dt, IntegrationScheme &integration_scheme);
+extern void simulation_step(const std::vector<Particle *> &pVector, const std::vector<Force *> &fVector,
+                            const std::vector<Constraint *> &cVector, float dt, IntegrationScheme &integration_scheme);
 
 /* global variables */
 
@@ -63,45 +64,32 @@ free/clear/allocate simulation data
 ----------------------------------------------------------------------
 */
 
-static void free_data(void) {
+
+// Clears the content of the particle, force and constraints vectors
+static void clear_vector_data(void) {
+    for (auto p: pVector) {
+        delete p;
+    }
+    for (auto f: fVector) {
+        delete f;
+    }
+    for (auto c: cVector) {
+        delete c;
+    }
     pVector.clear();
     fVector.clear();
     cVector.clear();
 }
 
-static void clear_data(void) {
-    int ii, size = pVector.size();
+// Frees all data
+static void free_data() {
+    clear_vector_data();
 
-    for (ii = 0; ii < size; ii++) {
-        pVector[ii]->reset();
-    }
+    delete mouse_interact_force;
+    mouse_interact_force = nullptr;
 }
 
-static void init_system(void) {
-    const double dist = 0.2;
-    const Vec2f center(0.0, 0.0);
-    const Vec2f offset(0.0, dist);
-
-    // Create three particles, attach them to each other, then add a
-    // circular wire constraint to the first.
-
-    pVector.push_back(new Particle(center + offset, 0));
-    pVector.push_back(new Particle(center + offset + Vec2f(0.001, dist), 1));
-    //pVector.push_back(new Particle(center + Vec2f(0, -dist - 0.03), 0));
-    //pVector.push_back(new Particle(center + Vec2f(0, - 2 * dist - 0.03), 1));
-
-    fVector.push_back(new GravityForce({pVector[0], pVector[1]}, Vec2f(0.00, -0.03)));
-
-    cVector.push_back(new CircularWireConstraint(pVector[0], center, dist, 0));
-    cVector.push_back(new RodConstraint(pVector[0], pVector[1], dist, 1));
-
-
-    // You shoud replace these with a vector generalized forces and one of
-    // constraints...
-    // delete_this_dummy_spring = new SpringForce(pVector[0], pVector[1], dist, 1.0, 1.0);
-    // delete_this_dummy_rod = new RodConstraint(pVector[1], pVector[2], dist);
-    // delete_this_dummy_wire = new CircularWireConstraint(pVector[0], center, dist);
-}
+static void init_system(void) { set_scene(1, pVector, fVector, cVector); }
 
 /*
 ----------------------------------------------------------------------
@@ -144,22 +132,18 @@ static void post_display(void) {
 }
 
 static void draw_particles(void) {
-    int size = pVector.size();
-
-    for (int ii = 0; ii < size; ii++) {
-        pVector[ii]->draw();
+    for (auto p: pVector) {
+        p->draw();
     }
 }
 
 static void draw_forces(void) {
-    int size = fVector.size();
-    for (int ii = 0; ii < size; ii++) {
-        fVector[ii]->draw();
+    for (auto f: fVector) {
+        f->draw();
     }
 }
 
 static void draw_constraints(void) {
-    // change this to iteration over full set
     for (auto c: cVector) {
         c->draw();
     }
@@ -267,7 +251,7 @@ static void key_func(unsigned char key, int x, int y) {
     switch (key) {
         case 'c':
         case 'C':
-            clear_data();
+            clear_vector_data();
             break;
 
         case 'd':
@@ -299,6 +283,13 @@ static void key_func(unsigned char key, int x, int y) {
             integration_scheme = std::make_unique<RungeKuttaScheme>();
             std::cout << "Switched to RangeKuttaScheme." << std::endl;
             break;
+        default:
+            if (std::isdigit(key)) {
+                dsim = 0;
+                clear_vector_data();
+                set_scene(key - '0', pVector, fVector, cVector);
+                std::cout << "Switched to scene " << key << "." << std::endl;
+            }
     }
 }
 
@@ -414,6 +405,8 @@ int main(int argc, char **argv) {
     printf("\t Toggle construction/simulation display with the spacebar key\n");
     printf("\t Dump frames by pressing the 'd' key\n");
     printf("\t Quit by pressing the 'q' key\n");
+    printf("\t Switch integreation scheme by using 'e', 'm' and 'r'\n");
+    printf("\t Switch to a given scene using '1-9'\n");
 
     dsim = 0;
     dump_frames = 0;
