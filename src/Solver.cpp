@@ -41,8 +41,8 @@ void apply_constraint_forces_to_particles(std::vector<Particle *> pVector, std::
     }
 
     std::vector<double> W;
-    double qDeriv[pVector.size() * DIMS];
-    double wq[pVector.size() * DIMS];
+    std::vector<double> qDeriv(pVector.size() * DIMS);
+    std::vector<double> wq(pVector.size() * DIMS);
     for (size_t i = 0; i < pVector.size(); ++i) {
         Particle *p = pVector[i];
 
@@ -60,31 +60,30 @@ void apply_constraint_forces_to_particles(std::vector<Particle *> pVector, std::
     JWJ jwj(J, W);
 
     // JDeriv: (#const, 2 * #particles), QDeriv: (2 * #particles) -> #const
-    double jDerivQDeriv[cVector.size()];
-    JDeriv.matVecMult(qDeriv, jDerivQDeriv);
+    std::vector<double> jDerivQDeriv = JDeriv.matVecMult(qDeriv);
 
 
     // J: (#const, 2 * #particles), WQ: (2 * #particles) -> #const
-    double jwq[cVector.size()];
-    J.matVecMult(wq, jwq);
+    std::vector<double> jwq = J.matVecMult(wq);
 
-    double right_hand_side[cVector.size()];
+
+    std::vector<double> right_hand_side(cVector.size());
     for (size_t i = 0; i < cVector.size(); ++i) {
         right_hand_side[i] = (-jDerivQDeriv[i] - jwq[i]) - cVector[i]->getC() * KS - cVector[i]->getCDeriv() * KD;
     }
 
-    double lambda[cVector.size()];
+
 
     int steps = 0;
-    ConjGrad(cVector.size(), &jwj, lambda, right_hand_side, 0.000001, &steps);
+    std::vector<double> lambda(cVector.size());
+    ConjGrad(cVector.size(), &jwj, lambda.data(), right_hand_side.data(), 0.000000001, &steps);
 
     if (steps >= 20) {
         std::cout << "ConjGrad took many steps: " << std::endl;
         std::cout << steps << std::endl;
     }
 
-    double qHat[pVector.size() * DIMS];
-    J.matTransVecMult(lambda, qHat);
+    std::vector<double> qHat = J.matTransVecMult(lambda);
 
     for (size_t i = 0; i < pVector.size(); ++i) {
         auto p = pVector[i];

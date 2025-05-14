@@ -5,12 +5,12 @@
 class SparseMatrix {
 public:
     SparseMatrix(size_t rows, size_t cols);
-    void matVecMult(double x[], double r[]);
-    void matTransVecMult(double x[], double r[]);
+    [[nodiscard]] std::vector<double> matVecMult(const std::vector<double> &x) const;
+    [[nodiscard]] std::vector<double> matTransVecMult(const std::vector<double> &x) const;
     void addCell(size_t i, size_t j, double val);
-    std::pair<size_t, size_t> getDim() { return {m_rows, m_cols}; };
+    [[nodiscard]] std::pair<size_t, size_t> getDim() const { return {m_rows, m_cols}; };
 
-     void debugPrint();
+     void debugPrint() const;
 
 
 private:

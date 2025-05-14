@@ -86,14 +86,17 @@ static void init_system(void) {
     // circular wire constraint to the first.
 
     pVector.push_back(new Particle(center + offset, 0));
-    pVector.push_back(new Particle(center + offset + Vec2f(0.001, dist), 1));
+    pVector.push_back(new Particle(center + 2 * offset + Vec2f(0.001, 0.0), 1));
+    pVector.push_back(new Particle(center + 2 * offset + Vec2f(dist, 0.0), 2));
+    //pVector.push_back(new Particle(center + offset + Vec2f(dist, dist), 2));
     //pVector.push_back(new Particle(center + Vec2f(0, -dist - 0.03), 0));
     //pVector.push_back(new Particle(center + Vec2f(0, - 2 * dist - 0.03), 1));
 
-    fVector.push_back(new GravityForce({pVector[0], pVector[1]}, Vec2f(0.00, -0.03)));
+    fVector.push_back(new GravityForce(pVector, Vec2f(0.00, -0.03)));
 
     cVector.push_back(new CircularWireConstraint(pVector[0], center, dist, 0));
     cVector.push_back(new RodConstraint(pVector[0], pVector[1], dist, 1));
+    cVector.push_back(new RodConstraint(pVector[1], pVector[2], dist, 2));
 
 
     // You shoud replace these with a vector generalized forces and one of

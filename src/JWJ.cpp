@@ -7,22 +7,23 @@
 #include <vector>
 
 
-JWJ::JWJ(SparseMatrix J, std::vector<double> W) : m_J(std::move(J)), m_W(std::move(W)) {}
+JWJ::JWJ(SparseMatrix J, std::vector<double> W) : m_W(std::move(W)), m_J(std::move(J))  {}
 
 void JWJ::matVecMult(double x[], double r[]) {
     auto dim = m_J.getDim();
     auto rows = dim.first;
     auto cols = dim.second;
 
-    double temp[cols];
-    m_J.matTransVecMult(x, temp);
+    std::vector<double> xVec(x, x + rows);
 
+    std::vector<double> temp = m_J.matTransVecMult(xVec);
 
-    for (size_t i = 0; i < rows; i++) {
+    for (size_t i = 0; i < cols; i++) {
         temp[i] *= m_W[i];
     }
 
-    m_J.matVecMult(temp, r);
+    std::vector<double> result = m_J.matVecMult(temp);
+    std::copy(result.begin(), result.end(), r);
 }
 
 
