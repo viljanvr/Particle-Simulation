@@ -79,7 +79,7 @@ void apply_constraint_forces_to_particles(std::vector<Particle *> pVector, std::
 
     std::cout << "jDerivQDeriv" << std::endl;
     for (size_t i = 0; i < cVector.size(); ++i) {
-        JDeriv.matVecMult(qDeriv, jDerivQDeriv);
+        std::cout << jDerivQDeriv[i] << std::endl;
     }
 
     // J: (#const, 2 * #particles), WQ: (2 * #particles) -> #const
@@ -104,7 +104,7 @@ void apply_constraint_forces_to_particles(std::vector<Particle *> pVector, std::
 
     double lambda[cVector.size()];
 
-    int steps = 10;
+    int steps = 0;
     ConjGrad(cVector.size(), &jwj, lambda, right_hand_side, 0.00000000001, &steps);
 
     std::cout << "lambda" << std::endl;
