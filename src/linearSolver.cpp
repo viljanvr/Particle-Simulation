@@ -1,5 +1,7 @@
 #include "linearSolver.h"
 
+#include <iostream>
+
 // vector helper functions
 
 void vecAddEqual(int n, double r[], double v[]) {
@@ -46,6 +48,16 @@ double ConjGrad(int n, implicitMatrix *A, double x[], double b[],
 
     vecAssign(n, r, b);
     A->matVecMult(x, temp);
+
+    std::cout << "x:" << std::endl;
+    for (size_t i = 0; i < n; i++) {
+        std::cout << x[i] << std::endl;
+    }
+    std::cout << "Result of A * x:" << std::endl;
+    for (size_t i = 0; i < n; i++) {
+        std::cout << temp[i] << std::endl;
+    }
+
     vecDiffEqual(n, r, temp);
 
     rSqrLen = vecSqrLen(n, r);
@@ -61,7 +73,15 @@ double ConjGrad(int n, implicitMatrix *A, double x[], double b[],
     if (rSqrLen > epsilon)
         while (i < iMax) {
             i++;
+            std::cout << "d:" << std::endl;
+            for (size_t j = 0; j < n; j++) {
+                std::cout << d[j] << std::endl;
+            }
             A->matVecMult(d, t);
+            std::cout << "Result of A * d:" << std::endl;
+            for (size_t i = 0; i < n; i++) {
+                std::cout << t[i] << std::endl;
+            }
             u = vecDot(n, d, t);
 
             if (u == 0) {
@@ -84,7 +104,15 @@ double ConjGrad(int n, implicitMatrix *A, double x[], double b[],
             } else {
                 // For stability, correct r every 64th iteration
                 vecAssign(n, r, b);
+                std::cout << "x" << std::endl;
+                for (size_t j = 0; j < n; j++) {
+                    std::cout << x[j] << std::endl;
+                }
                 A->matVecMult(x, temp);
+                std::cout << "Result of A * x:" << std::endl;
+                for (size_t j = 0; j < n; j++) {
+                    std::cout << temp[j] << std::endl;
+                }
                 vecDiffEqual(n, r, temp);
             }
 

@@ -105,7 +105,7 @@ void apply_constraint_forces_to_particles(std::vector<Particle *> pVector, std::
     double lambda[cVector.size()];
 
     int steps = 0;
-    ConjGrad(cVector.size(), &jwj, lambda, right_hand_side, 0.00000000001, &steps);
+    ConjGrad(cVector.size(), &jwj, lambda, right_hand_side, 0.00001, &steps);
 
     std::cout << "lambda" << std::endl;
     for (size_t i = 0; i < cVector.size(); ++i) {
