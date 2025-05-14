@@ -10,8 +10,8 @@
 #define RAND (((rand() % 2000) / 1000.f) - 1.f)
 
 #define DIMS 2 // Particle dimension
-#define KS 0.0
-#define KD 0.0
+#define KS 1.0
+#define KD 1.0
 
 void reset_particle_forces(std::vector<Particle *> pVector) {
     for (auto particle : pVector) {
@@ -40,12 +40,6 @@ void apply_constraint_forces_to_particles(std::vector<Particle *> pVector, std::
         }
     }
 
-    std::cout << "J" << std::endl;
-    J.debugPrint();
-
-    std::cout << "JDeriv" << std::endl;
-    JDeriv.debugPrint();
-
     std::vector<double> W;
     double qDeriv[pVector.size() * DIMS];
     double wq[pVector.size() * DIMS];
@@ -62,14 +56,6 @@ void apply_constraint_forces_to_particles(std::vector<Particle *> pVector, std::
         wq[2 * i + 1] = p->m_Forces[1] / p->m_Mass;
     }
 
-    std::cout << "qDeriv" << std::endl;
-    for (size_t i = 0; i < pVector.size() * DIMS; ++i) {
-        std::cout << qDeriv[i] << std::endl;
-    }
-    std::cout << "wq" << std::endl;
-    for (size_t i = 0; i < pVector.size() * DIMS; ++i) {
-        std::cout << wq[i] << std::endl;
-    }
 
     JWJ jwj(J, W);
 
@@ -77,58 +63,34 @@ void apply_constraint_forces_to_particles(std::vector<Particle *> pVector, std::
     double jDerivQDeriv[cVector.size()];
     JDeriv.matVecMult(qDeriv, jDerivQDeriv);
 
-    std::cout << "jDerivQDeriv" << std::endl;
-    for (size_t i = 0; i < cVector.size(); ++i) {
-        std::cout << jDerivQDeriv[i] << std::endl;
-    }
 
     // J: (#const, 2 * #particles), WQ: (2 * #particles) -> #const
     double jwq[cVector.size()];
     J.matVecMult(wq, jwq);
-
-    std::cout << "jwq" << std::endl;
-    for (size_t i = 0; i < cVector.size(); ++i) {
-        std::cout << jwq[i] << std::endl;
-    }
 
     double right_hand_side[cVector.size()];
     for (size_t i = 0; i < cVector.size(); ++i) {
         right_hand_side[i] = (-jDerivQDeriv[i] - jwq[i]) - cVector[i]->getC() * KS - cVector[i]->getCDeriv() * KD;
     }
 
-    std::cout << "right_hand_side" << std::endl;
-    for (size_t i = 0; i < cVector.size(); ++i) {
-        std::cout << right_hand_side[i] << std::endl;
-    }
-
-
     double lambda[cVector.size()];
 
     int steps = 0;
     ConjGrad(cVector.size(), &jwj, lambda, right_hand_side, 0.000001, &steps);
 
-    std::cout << "lambda" << std::endl;
-    for (size_t i = 0; i < cVector.size(); ++i) {
-        std::cout << lambda[i] << std::endl;
+    if (steps >= 20) {
+        std::cout << "ConjGrad took many steps: " << std::endl;
+        std::cout << steps << std::endl;
     }
-    std::cout << "steps" << std::endl;
-    std::cout << steps << std::endl;
 
     double qHat[pVector.size() * DIMS];
     J.matTransVecMult(lambda, qHat);
-
-    std::cout << "qHat" << std::endl;
-    for (size_t i = 0; i < pVector.size() * DIMS; ++i) {
-        std::cout << qHat[i] << std::endl;
-    }
-
 
     for (size_t i = 0; i < pVector.size(); ++i) {
         auto p = pVector[i];
         p->m_Forces[0] += qHat[2 * i];
         p->m_Forces[1] += qHat[2 * i + 1];
     }
-    std::cout << std::endl << std::endl << "=============" << std::endl << std::endl;
 }
 
 void compute_total_forces(std::vector<Particle *> pVector, std::vector<Force *> fVector, std::vector<Constraint* > cVector) {
