@@ -15,6 +15,9 @@
 #include "SpringForce.h"
 #include "imageio.h"
 
+#include <cstddef>
+#include <iostream>
+#include <memory>
 #include <stdio.h>
 #include <stdlib.h>
 #include <vector>
@@ -28,7 +31,8 @@
 /* macros */
 
 /* external definitions (from solver) */
-extern void simulation_step(std::vector<Particle *> pVector, std::vector<Force *> fVector, std::vector<Constraint *> cVector, float dt, IntegrationScheme& integration_scheme);
+extern void simulation_step(std::vector<Particle *> pVector, std::vector<Force *> fVector,
+                            std::vector<Constraint *> cVector, float dt, IntegrationScheme &integration_scheme);
 
 /* global variables */
 
@@ -43,17 +47,15 @@ static std::vector<Particle *> pVector;
 
 static int win_id;
 static int win_x, win_y;
-static int mouse_down[3];
-static int mouse_release[3];
-static int mouse_shiftclick[3];
-static int omx, omy, mx, my;
-static int hmx, hmy;
+static int mouse_state[3] = {GLUT_UP};
+static int omx, omy, mx, my; // Old mouse position, and new mouse position
+static int hmx, hmy; // Hover mouse position
 
 static std::vector<Force *> fVector;
 static std::vector<Constraint *> cVector;
-
+static Force *mouse_interact_force;
+static std::unique_ptr<Particle> mouse_particle = std::make_unique<Particle>(Vec2f(mx, my), 100);
 static std::unique_ptr<IntegrationScheme> integration_scheme = std::make_unique<EulerScheme>();
-
 /*
 ----------------------------------------------------------------------
 free/clear/allocate simulation data
@@ -84,15 +86,13 @@ static void init_system(void) {
 
     pVector.push_back(new Particle(center + offset, 0));
     pVector.push_back(new Particle(center + offset + Vec2f(dist, 0.0), 1));
-    //pVector.push_back(new Particle(center + Vec2f(0, -dist - 0.03), 0));
-    //pVector.push_back(new Particle(center + Vec2f(0, - 2 * dist - 0.03), 1));
+    // pVector.push_back(new Particle(center + Vec2f(0, -dist - 0.03), 0));
+    // pVector.push_back(new Particle(center + Vec2f(0, - 2 * dist - 0.03), 1));
 
     fVector.push_back(new GravityForce({pVector[0], pVector[1]}, Vec2f(0.00, -0.03)));
 
     cVector.push_back(new CircularWireConstraint(pVector[0], center, dist, 0));
     cVector.push_back(new RodConstraint(pVector[0], pVector[1], dist, 1));
-
-
 
 
     // You shoud replace these with a vector generalized forces and one of
@@ -159,7 +159,7 @@ static void draw_forces(void) {
 
 static void draw_constraints(void) {
     // change this to iteration over full set
-    for (auto c : cVector) {
+    for (auto c: cVector) {
         c->draw();
     }
 }
@@ -170,35 +170,80 @@ relates mouse movements to particle toy construction
 ----------------------------------------------------------------------
 */
 
-static void get_from_UI() {
-    int i, j;
-    // int size, flag;
-    int hi, hj;
-    // float x, y;
-    if (!mouse_down[0] && !mouse_down[2] && !mouse_release[0] && !mouse_shiftclick[0] && !mouse_shiftclick[2])
-        return;
 
-    i = (int) ((mx / (float) win_x) * N);
-    j = (int) (((win_y - my) / (float) win_y) * N);
+static void add_interact_force() {
+    if (!mouse_interact_force) {
+        mouse_particle->m_Position[0] = mx / (float) win_x * 2.0 - 1.0;
+        mouse_particle->m_Position[1] = (win_y - my) / (float) win_y * 2.0 - 1.0;
 
-    if (i < 1 || i > N || j < 1 || j > N)
-        return;
-
-    if (mouse_down[0]) {
+        for (auto p: pVector) {
+            float dx = mouse_particle->m_Position[0] - p->m_Position[0];
+            float dy = mouse_particle->m_Position[1] - p->m_Position[1];
+            if (dx * dx + dy * dy < 0.05) {
+                mouse_interact_force = new SpringForce(mouse_particle.get(), p, 0.0, 1.0, 10.0);
+                fVector.push_back(mouse_interact_force);
+                break;
+            }
+        }
     }
+}
 
-    if (mouse_down[2]) {
+static void remove_interact_force() {
+    if (mouse_interact_force) {
+        fVector.erase(std::remove(fVector.begin(), fVector.end(), mouse_interact_force), fVector.end());
+        delete mouse_interact_force;
+        mouse_interact_force = nullptr;
     }
+}
 
-    hi = (int) ((hmx / (float) win_x) * N);
-    hj = (int) (((win_y - hmy) / (float) win_y) * N);
+static void handle_user_interaction() {
+    if (mouse_state[GLUT_LEFT_BUTTON] == GLUT_DOWN) {
+        // To scale from pixel coordinate to [-1, 1].
+        // TODO: Should we change coordinate system?
+        float i = mx / (float) win_x * 2.0 - 1.0;
+        float j = (win_y - my) / (float) win_y * 2.0 - 1.0;
 
-    if (mouse_release[0]) {
+        // Update postition of (the imaginary) mouse_particle while holding down left mouse
+        mouse_particle->m_Position[0] = i;
+        mouse_particle->m_Position[1] = j;
     }
 
     omx = mx;
     omy = my;
 }
+
+// NOTE: I think this function is a bit unintuitive, so have created another solution
+
+// static void get_from_UI() {
+//     int i, j;
+//     // int size, flag;
+//     int hi, hj;
+//     // float x, y;
+//     if (!mouse_down[0] && !mouse_down[2] && !mouse_release[0] && !mouse_shiftclick[0] && !mouse_shiftclick[2])
+//         return;
+//
+//     i = (int) ((mx / (float) win_x) * N);
+//     j = (int) (((win_y - my) / (float) win_y) * N);
+//
+//
+//     if (i < 1 || i > N || j < 1 || j > N)
+//         return;
+//
+//     if (mouse_down[0]) {
+//     }
+//
+//     if (mouse_down[2]) {
+//     }
+//
+//     hi = (int) ((hmx / (float) win_x) * N);
+//     hj = (int) (((win_y - hmy) / (float) win_y) * N);
+//
+//     if (mouse_release[0]) {
+//     }
+//
+//     omx = mx;
+//     omy = my;
+// }
 
 static void remap_GUI() {
     int ii, size = pVector.size();
@@ -260,15 +305,19 @@ static void mouse_func(int button, int state, int x, int y) {
     omx = mx = x;
     omx = my = y;
 
-    if (!mouse_down[0]) {
+    mouse_state[button] = state;
+
+    // Update hover coordinates
+    if (state == GLUT_UP) {
         hmx = x;
         hmy = y;
     }
-    if (mouse_down[button])
-        mouse_release[button] = state == GLUT_UP;
-    if (mouse_down[button])
-        mouse_shiftclick[button] = glutGetModifiers() == GLUT_ACTIVE_SHIFT;
-    mouse_down[button] = state == GLUT_DOWN;
+
+    if (state == GLUT_DOWN && button == 0) {
+        add_interact_force();
+    } else if (state == GLUT_UP && button == 0) {
+        remove_interact_force();
+    }
 }
 
 static void motion_func(int x, int y) {
@@ -285,10 +334,11 @@ static void reshape_func(int width, int height) {
 }
 
 static void idle_func(void) {
+    handle_user_interaction();
     if (dsim) {
         simulation_step(pVector, fVector, cVector, dt, *integration_scheme);
     } else {
-        get_from_UI();
+        // get_from_UI();
         remap_GUI();
     }
     glutSetWindow(win_id);
