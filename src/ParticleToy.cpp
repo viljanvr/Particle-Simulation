@@ -18,6 +18,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <vector>
+#include <memory>
 
 #if defined(__APPLE__) && defined(__aarch64__)
 #include <GLUT/glut.h>
@@ -356,6 +357,7 @@ int main(int argc, char **argv) {
         N = atoi(argv[1]);
         dt = atof(argv[2]);
         d = atof(argv[3]);
+        fprintf(stderr, "Using customs : N=%d dt=%g d=%g\n", N, dt, d);
     }
 
     printf("\n\nHow to use this application:\n\n");

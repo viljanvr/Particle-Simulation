@@ -2,6 +2,7 @@
 
 #include "Particle.h"
 #include <vector>
+#include <functional>
 
 using derivEvalFunction = std::function<void()>;
 
