@@ -1,5 +1,7 @@
 #include "ScenePresets.h"
 
+#include <AngularSpringForce.h>
+
 #include "RodConstraintVar.h"
 
 #include "CircularWireConstraint.h"
@@ -51,6 +53,25 @@ void set_scene(int scene, std::vector<Particle *> &pVector, std::vector<Force *>
                 }
 
             }
+            break;
+        case 4: {
+            constexpr double total_height = 0.8;
+            constexpr size_t particles = 15;
+            constexpr double rod_length = total_height / particles;
+
+            for (size_t i = 0; i < particles; i++) {
+                pVector.push_back(new Particle(center + (i + 1) * Vec2f(0, rod_length), pVector.size()));
+            }
+
+            for (size_t i = 2; i < particles; i++) {
+                fVector.push_back(new AngularSpringForce(pVector[i - 2], pVector[i - 1], pVector[i], 90 + (i % 2) * 180,
+                                                         0.1, 0.05));
+            }
+
+            for (size_t i = 1; i < particles; i++) {
+                cVector.push_back(new RodConstraint(pVector[i], pVector[i - 1], rod_length, cVector.size()));
+            }
+        }
             break;
 
 
