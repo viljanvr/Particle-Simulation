@@ -24,8 +24,9 @@ endif
 
 
 #CXXFLAGS = --std=c++17 -g -O2 -Wall -Wno-sign-compare -Wno-deprecated-declarations -I$(INCLUDE) -I$(INC_COMMON) -DHAVE_CONFIG_H -DDEBUG
-CXXFLAGS = --std=c++17 -g -O1 -Wall -Wno-sign-compare -Wno-deprecated-declarations -fsanitize=address -fsanitize-address-use-after-scope -fno-omit-frame-pointer -I$(INCLUDE) -I$(INC_COMMON) -DHAVE_CONFIG_H -DDEBUG
-CXX_EXTRA_FLAGS += -fsanitize=address -fsanitize-address-use-after-scope -fno-omit-frame-pointer
+CXXFLAGS = --std=c++17 -g -O1 -Wall -Wno-sign-compare -Wno-deprecated-declarations -I$(INCLUDE) -I$(INC_COMMON) -DHAVE_CONFIG_H -DDEBUG
+#CXXFLAGS += -fsanitize=address -fsanitize-address-use-after-scope -fno-omit-frame-pointer
+#CXX_EXTRA_FLAGS += -fsanitize=address -fsanitize-address-use-after-scope -fno-omit-frame-pointer
 CXX = g++
 
 SRC_DIR = src
