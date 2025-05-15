@@ -59,7 +59,7 @@ static std::vector<Force *> fVector;
 static std::vector<Constraint *> cVector;
 static Force *mouse_interact_force;
 static std::unique_ptr<Particle> mouse_particle = std::make_unique<Particle>(Vec2f(mx, my), visualizeForces, 100);
-static std::unique_ptr<IntegrationScheme> integration_scheme = std::make_unique<EulerScheme>();
+static std::unique_ptr<IntegrationScheme> integration_scheme = std::make_unique<RungeKuttaScheme>();
 
 /*
 ----------------------------------------------------------------------
