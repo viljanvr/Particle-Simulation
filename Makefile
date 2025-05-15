@@ -19,7 +19,8 @@ else ifeq ($(UNAME_M), Linux) # Linux
 else ifeq ($(OS),Windows_NT) # Windows
 	RM = rm -vf # might have to be adjusted to del for some Windows distros
 	INCLUDE = $(INC_WINDOWS)
-	CXX_EXTRA_FLAGS = -Llib -lfreeglut -lglu32 -lopengl32 -lpng12
+#	CXX_EXTRA_FLAGS = -Llib -lfreeglut -lglu32 -lopengl32 -lpng12
+	CXX_EXTRA_FLAGS = -lfreeglut -lglu32 -lopengl32 -lpng
 endif
 
 

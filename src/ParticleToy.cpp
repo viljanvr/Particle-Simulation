@@ -23,6 +23,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <vector>
+#include <algorithm>
 
 #if defined(__APPLE__) && defined(__aarch64__)
 #include <GLUT/glut.h>
