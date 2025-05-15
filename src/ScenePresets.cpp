@@ -1,4 +1,7 @@
 #include "ScenePresets.h"
+
+#include "RodConstraintVar.h"
+
 #include "CircularWireConstraint.h"
 #include "GravityForce.h"
 #include "RodConstraint.h"
@@ -44,7 +47,7 @@ void set_scene(int scene, std::vector<Particle *> &pVector, std::vector<Force *>
 
                 cVector.push_back(new CircularWireConstraint(pVector[0], center, rod_length, 0));
                 for (size_t i = 1; i < particles; i++) {
-                    cVector.push_back(new RodConstraint(pVector[i], pVector[i - 1], rod_length, i));
+                    cVector.push_back(new RodConstraintVar(pVector[i], pVector[i - 1], rod_length, i));
                 }
 
             }

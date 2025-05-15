@@ -6,7 +6,7 @@
 #include <GL/glut.h>
 #endif
 
-RodConstraintVar::RodConstraintVar(Particle *p1, Particle *p2, double dist, size_t index) : m_p1(p1), m_p2(p2), m_dist(dist), Constraint(index) {}
+RodConstraintVar::RodConstraintVar(Particle *p1, Particle *p2, double dist, size_t index) : Constraint(index), m_p1(p1), m_p2(p2), m_dist(dist) {}
 
 std::vector<JacobianEntry> RodConstraintVar::getJacobian() {
     double dist = getC() + m_dist;
