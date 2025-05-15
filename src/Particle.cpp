@@ -8,9 +8,9 @@
 
 Particle::Particle(const Vec2f &ConstructPos, size_t index) :
     m_ConstructPos(ConstructPos), m_Position(Vec2f(0.0, 0.0)), m_Velocity(Vec2f(0.0, 0.0)), m_Forces(Vec2f(0.0, 0.0)),
-    m_index(index), m_Mass(1.0) {}
+    m_Mass(1.0), m_index(index) {}
 
-Particle::~Particle(void) {}
+Particle::~Particle() = default;
 
 void Particle::reset() {
     m_Position = m_ConstructPos;

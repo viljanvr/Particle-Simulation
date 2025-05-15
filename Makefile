@@ -23,7 +23,10 @@ else ifeq ($(OS),Windows_NT) # Windows
 endif
 
 
-CXXFLAGS = --std=c++17 -g -O2 -Wall -Wno-sign-compare -I$(INCLUDE) -I$(INC_COMMON) -DHAVE_CONFIG_H -DDEBUG
+#CXXFLAGS = --std=c++17 -g -O2 -Wall -Wno-sign-compare -Wno-deprecated-declarations -I$(INCLUDE) -I$(INC_COMMON) -DHAVE_CONFIG_H -DDEBUG
+CXXFLAGS = --std=c++17 -g -O1 -Wall -Wno-sign-compare -Wno-deprecated-declarations -I$(INCLUDE) -I$(INC_COMMON) -DHAVE_CONFIG_H -DDEBUG
+#CXXFLAGS += -fsanitize=address -fsanitize-address-use-after-scope -fno-omit-frame-pointer
+#CXX_EXTRA_FLAGS += -fsanitize=address -fsanitize-address-use-after-scope -fno-omit-frame-pointer
 CXX = g++
 
 SRC_DIR = src
@@ -41,6 +44,10 @@ $(OBJ_DIR):
 
 $(BIN_DIR):
 	mkdir -v $@
+
+# Special rule to suppress warnings from imageio.cpp
+obj/imageio.o: $(SRC_DIR)/imageio.cpp
+	$(CXX) -w $(CXXFLAGS) -o $@ -c $<
 
 obj/%.o: $(SRC_DIR)/%.cpp
 	$(CXX) $(CXXFLAGS) -o $@ -c $<

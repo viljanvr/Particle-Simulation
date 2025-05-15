@@ -39,6 +39,6 @@ double CircularWireConstraint::getCDeriv() {
 }
 
 CircularWireConstraint::CircularWireConstraint(Particle *p, const Vec2f &center, const double radius, size_t index) :
-    m_p(p), m_center(center), m_radius(radius), Constraint(index) {}
+    Constraint(index), m_p(p), m_center(center), m_radius(radius) {}
 
 void CircularWireConstraint::draw() { draw_circle(m_center, m_radius); }
