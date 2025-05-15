@@ -10,7 +10,6 @@
 #include "CircularWireConstraint.h"
 #include "Constraint.h"
 #include "Force.h"
-#include "GravityForce.h"
 #include "Particle.h"
 #include "RodConstraint.h"
 #include "ScenePresets.h"
