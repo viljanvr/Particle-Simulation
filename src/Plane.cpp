@@ -27,7 +27,7 @@ void Plane::backtrack_particles(Particle *p) {
     if ((p->m_Position - m_Origin) * m_Normal > 0) {
         return;
     }
-    std::cout << "Backtracking" << std::endl;
+    // std::cout << "Backtracking" << std::endl;
 
     Vec2f plane_dir = Vec2f(-m_Normal[1], m_Normal[0]);
     float t = cross_product(m_Origin - p->m_PreviousPosition, plane_dir) /
@@ -42,13 +42,13 @@ float Plane::cross_product(const Vec2f &a, const Vec2f &b) { return a[0] * b[1] 
 
 void Plane::respond_collision(Particle *p) {
 
-    std::cout << "Collided - v = " << p->m_Velocity[0] << ", " << p->m_Velocity[1] << std::endl;
+    // std::cout << "Collided - v = " << p->m_Velocity[0] << ", " << p->m_Velocity[1] << std::endl;
 
     Vec2f vn = (m_Normal * p->m_Velocity) * m_Normal; // Velocity in the direction perpendicular to the wall
     Vec2f vt = p->m_Velocity - vn; // Velocity in the direction paralell to the wall
     p->m_Velocity = vt - m_kr * vn;
 
-    std::cout << "After - v = " << p->m_Velocity[0] << ", " << p->m_Velocity[1] << std::endl;
+    // std::cout << "After - v = " << p->m_Velocity[0] << ", " << p->m_Velocity[1] << std::endl;
 }
 
 void Plane::draw() {
