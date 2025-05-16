@@ -42,26 +42,6 @@ void AngularSpringForce::applyForce() {
     Vec2f f0 = - torque / norm(v) * perp(v);
     Vec2f f2 = torque / norm(w) * perp(w);
 
-
-    std::cout << "p0->m_Position: " << m_p0->m_Position << std::endl;
-    std::cout << "p1->m_Position: " << m_p1->m_Position << std::endl;
-    std::cout << "p2->m_Position: " << m_p2->m_Position << std::endl;
-    std::cout << "p0->m_Velocity: " << m_p0->m_Velocity << std::endl;
-    std::cout << "p1->m_Velocity: " << m_p1->m_Velocity << std::endl;
-    std::cout << "p2->m_Velocity: " << m_p2->m_Velocity << std::endl;
-    std::cout << "v: " << v << std::endl;
-    std::cout << "w: " << w << std::endl;
-    std::cout << "vDeriv: " << vDeriv << std::endl;
-    std::cout << "wDeriv: " << wDeriv << std::endl;
-    std::cout << "alpha: " << alpha << std::endl;
-    std::cout << "alphaDeriv: " << alphaDeriv << std::endl;
-    std::cout << "damp_torque: " << m_kd * alphaDeriv << std::endl;
-    std::cout << "m_target_angle: " << m_target_angle << std::endl;
-    std::cout << "torque: " << torque << std::endl;
-    std::cout << "f0: " << f0 << std::endl;
-    std::cout << "f2: " << f2 << std::endl;
-    std::cout << std::endl << "======" << std::endl << std::endl;
-
     m_p0->m_Forces += f0;
     m_p2->m_Forces += f2;
     m_p1->m_Forces += -(f0 + f2);
