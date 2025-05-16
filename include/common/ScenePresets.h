@@ -8,4 +8,4 @@
 #include "Particle.h"
 
 void set_scene(int scene, std::vector<Particle *> &pVector, std::vector<Force *> &fVector,
-               std::vector<Constraint *> &cVector, std::vector<CollideableObject *> &oVector);
+               std::vector<Constraint *> &cVector, std::vector<CollideableObject *> &oVector, bool visualizeForces);

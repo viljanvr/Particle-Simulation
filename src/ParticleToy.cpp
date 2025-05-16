@@ -10,7 +10,6 @@
 #include "CircularWireConstraint.h"
 #include "Constraint.h"
 #include "Force.h"
-#include "GravityForce.h"
 #include "Particle.h"
 #include "Plane.h"
 #include "RodConstraint.h"
@@ -54,13 +53,15 @@ static int mouse_state[3] = {GLUT_UP};
 static int omx, omy, mx, my; // Old mouse position, and new mouse position
 static int hmx, hmy; // Hover mouse position
 
+static bool visualizeForces = false;
 static std::vector<Particle *> pVector;
 static std::vector<Force *> fVector;
 static std::vector<Constraint *> cVector;
 static std::vector<CollideableObject *> oVector;
 static Force *mouse_interact_force;
-static std::unique_ptr<Particle> mouse_particle = std::make_unique<Particle>(Vec2f(mx, my), 100);
-static std::unique_ptr<IntegrationScheme> integration_scheme = std::make_unique<EulerScheme>();
+static std::unique_ptr<Particle> mouse_particle = std::make_unique<Particle>(Vec2f(mx, my), visualizeForces, 100);
+static std::unique_ptr<IntegrationScheme> integration_scheme = std::make_unique<RungeKuttaScheme>();
+
 /*
 ----------------------------------------------------------------------
 free/clear/allocate simulation data
@@ -96,7 +97,7 @@ static void free_data() {
     mouse_interact_force = nullptr;
 }
 
-static void init_system(void) { set_scene(1, pVector, fVector, cVector, oVector); }
+static void init_system(void) { set_scene(1, pVector, fVector, cVector, oVector, visualizeForces); }
 
 /*
 ----------------------------------------------------------------------
@@ -295,11 +296,17 @@ static void key_func(unsigned char key, int x, int y) {
             integration_scheme = std::make_unique<RungeKuttaScheme>();
             std::cout << "Switched to RangeKuttaScheme." << std::endl;
             break;
+        case 'f':
+        case 'F':
+            visualizeForces = !visualizeForces;
+            for (auto particle: pVector) {
+                particle->m_forceVisualization = visualizeForces;
+            }
         default:
             if (std::isdigit(key)) {
                 dsim = 0;
                 clear_vector_data();
-                set_scene(key - '0', pVector, fVector, cVector, oVector);
+                set_scene(key - '0', pVector, fVector, cVector, oVector, visualizeForces);
                 std::cout << "Switched to scene " << key << "." << std::endl;
             }
     }
@@ -419,6 +426,7 @@ int main(int argc, char **argv) {
     printf("\t Dump frames by pressing the 'd' key\n");
     printf("\t Quit by pressing the 'q' key\n");
     printf("\t Switch integreation scheme by using 'e', 'm' and 'r'\n");
+    printf("\t Toggle force visualization by pressing the 'f' key\n");
     printf("\t Switch to a given scene using '1-9'\n");
 
     dsim = 0;
