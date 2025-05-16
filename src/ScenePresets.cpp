@@ -12,6 +12,7 @@
 #include "GravitationalForce.h"
 #include "RodConstraint.h"
 #include "SpringForce.h"
+#include "gfx/vec2.h"
 
 void three_body_problem_scene(std::vector<Particle *> &pVector, std::vector<Force *> &fVector,
                               std::vector<Constraint *> &cVector, bool visualizeForces) {
@@ -106,6 +107,14 @@ void set_scene(int scene, std::vector<Particle *> &pVector, std::vector<Force *>
             oVector.push_back(new Plane(Vec2f(0.0, -0.5), Vec2f(0.0, 1.0), pVector, 0.001));
             fVector.push_back(new LinearForce({pVector[0]}, Vec2f(0.00, -0.03)));
             break;
+        case 7: {
+            Vec2f position = Vec2f(-0.75, 0.5);
+            pVector.push_back(new Particle(position + offset, visualizeForces, 0));
+            pVector.push_back(new Particle(position, visualizeForces, 1));
+            pVector.push_back(new Particle(position - offset, visualizeForces, 2));
+            oVector.push_back(new Plane(Vec2f(0.0, -0.5), Vec2f(0.5, 1.0), pVector, 0.001, 0.75));
+            fVector.push_back(new LinearForce({pVector[0], pVector[1], pVector[2]}, Vec2f(0.00, -0.03)));
+        } break;
         default:
 
             pVector.push_back(new Particle(center, visualizeForces, 0));
