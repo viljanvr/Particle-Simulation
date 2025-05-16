@@ -1,5 +1,6 @@
 #include <EulerScheme.h>
 #include <vector>
+#include "CollideableObject.h"
 #include "Constraint.h"
 #include "Force.h"
 #include "JWJ.h"
@@ -13,14 +14,14 @@
 #define KS 1.0
 #define KD 1.0
 
-void reset_particle_forces(const std::vector<Particle *>& pVector) {
-    for (const auto particle : pVector) {
+void reset_particle_forces(const std::vector<Particle *> &pVector) {
+    for (const auto particle: pVector) {
         particle->m_Forces = Vec2f(0.0, 0.0);
     }
 }
 
-void apply_forces_to_particles(const std::vector<Force *>& fVector) {
-    for (const auto force : fVector) {
+void apply_forces_to_particles(const std::vector<Force *> &fVector) {
+    for (const auto force: fVector) {
         force->applyForce();
     }
 }
@@ -73,7 +74,6 @@ void apply_constraint_forces_to_particles(std::vector<Particle *> pVector, std::
     }
 
 
-
     int steps = 0;
     std::vector<double> lambda(cVector.size());
     ConjGrad(cVector.size(), &jwj, lambda.data(), right_hand_side.data(), 0.000000001, &steps);
@@ -92,7 +92,7 @@ void apply_constraint_forces_to_particles(std::vector<Particle *> pVector, std::
     }
 }
 
-void compute_total_forces(const std::vector<Particle *>& pVector, const std::vector<Force *>& fVector,
+void compute_total_forces(const std::vector<Particle *> &pVector, const std::vector<Force *> &fVector,
                           const std::vector<Constraint *> &cVector) {
     reset_particle_forces(pVector);
 
@@ -102,10 +102,16 @@ void compute_total_forces(const std::vector<Particle *>& pVector, const std::vec
 }
 
 void simulation_step(const std::vector<Particle *> &pVector, const std::vector<Force *> &fVector,
-                     const std::vector<Constraint *> &cVector,
-                     const float dt, IntegrationScheme& integration_scheme) {
+                     const std::vector<Constraint *> &cVector, const std::vector<CollideableObject *> &oVector,
+                     const float dt, IntegrationScheme &integration_scheme) {
+    for (auto p: pVector) {
+        p->m_PreviousPosition = p->m_Position;
+        p->m_PreviousVelocity = p->m_Velocity;
+    }
+    integration_scheme.updateParticlesBasedOnForce(
+            pVector, [&]() { compute_total_forces(pVector, fVector, cVector); }, dt);
 
-    integration_scheme.updateParticlesBasedOnForce(pVector, [&]() {
-        compute_total_forces(pVector, fVector, cVector);
-    } ,dt);
+    for (auto o: oVector) {
+        o->detect_collision();
+    }
 }

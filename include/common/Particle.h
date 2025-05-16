@@ -13,7 +13,9 @@ public:
     Vec2f m_ConstructPos;
     Vec2f m_ConstructionVelocity;
     Vec2f m_Position;
+    Vec2f m_PreviousPosition;
     Vec2f m_Velocity;
+    Vec2f m_PreviousVelocity;
     Vec2f m_Forces;
     double m_Mass;
     bool m_forceVisualization;
