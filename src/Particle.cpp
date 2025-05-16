@@ -1,4 +1,5 @@
 #include "Particle.h"
+#include "gfx/vec2.h"
 
 #if defined(__APPLE__) && defined(__aarch64__)
 #include <GLUT/glut.h>
@@ -14,7 +15,9 @@ Particle::~Particle() = default;
 
 void Particle::reset() {
     m_Position = m_ConstructPos;
+    m_PreviousPosition = m_ConstructPos;
     m_Velocity = Vec2f(0.0, 0.0);
+    m_PreviousVelocity = Vec2f(0.0, 0.0);
     m_Forces = Vec2f(0.0, 0.0);
     m_Mass = 1.0;
 }

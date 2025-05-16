@@ -12,18 +12,20 @@
 #include "Force.h"
 #include "GravityForce.h"
 #include "Particle.h"
+#include "Plane.h"
 #include "RodConstraint.h"
 #include "ScenePresets.h"
 #include "SpringForce.h"
+#include "gfx/vec2.h"
 #include "imageio.h"
 
+#include <algorithm>
 #include <cstddef>
 #include <iostream>
 #include <memory>
 #include <stdio.h>
 #include <stdlib.h>
 #include <vector>
-#include <algorithm>
 
 #if defined(__APPLE__) && defined(__aarch64__)
 #include <GLUT/glut.h>
@@ -35,7 +37,8 @@
 
 /* external definitions (from solver) */
 extern void simulation_step(const std::vector<Particle *> &pVector, const std::vector<Force *> &fVector,
-                            const std::vector<Constraint *> &cVector, float dt, IntegrationScheme &integration_scheme);
+                            const std::vector<Constraint *> &cVector, const std::vector<CollideableObject *> &oVector,
+                            const float dt, IntegrationScheme &integration_scheme);
 
 /* global variables */
 
@@ -45,17 +48,16 @@ static int dsim;
 static int dump_frames;
 static int frame_number;
 
-// static Particle *pList;
-static std::vector<Particle *> pVector;
-
 static int win_id;
 static int win_x, win_y;
 static int mouse_state[3] = {GLUT_UP};
 static int omx, omy, mx, my; // Old mouse position, and new mouse position
 static int hmx, hmy; // Hover mouse position
 
+static std::vector<Particle *> pVector;
 static std::vector<Force *> fVector;
 static std::vector<Constraint *> cVector;
+static std::vector<CollideableObject *> oVector;
 static Force *mouse_interact_force;
 static std::unique_ptr<Particle> mouse_particle = std::make_unique<Particle>(Vec2f(mx, my), 100);
 static std::unique_ptr<IntegrationScheme> integration_scheme = std::make_unique<EulerScheme>();
@@ -77,9 +79,13 @@ static void clear_vector_data(void) {
     for (auto c: cVector) {
         delete c;
     }
+    for (auto o: oVector) {
+        delete o;
+    }
     pVector.clear();
     fVector.clear();
     cVector.clear();
+    oVector.clear();
 }
 
 // Frees all data
@@ -90,7 +96,7 @@ static void free_data() {
     mouse_interact_force = nullptr;
 }
 
-static void init_system(void) { set_scene(1, pVector, fVector, cVector); }
+static void init_system(void) { set_scene(1, pVector, fVector, cVector, oVector); }
 
 /*
 ----------------------------------------------------------------------
@@ -150,6 +156,12 @@ static void draw_constraints(void) {
     }
 }
 
+static void draw_collidable_objects() {
+    for (auto o: oVector) {
+        o->draw();
+    }
+}
+
 /*
 ----------------------------------------------------------------------
 relates mouse movements to particle toy construction
@@ -185,7 +197,6 @@ static void remove_interact_force() {
 static void handle_user_interaction() {
     if (mouse_state[GLUT_LEFT_BUTTON] == GLUT_DOWN) {
         // To scale from pixel coordinate to [-1, 1].
-        // TODO: Should we change coordinate system?
         float i = mx / (float) win_x * 2.0 - 1.0;
         float j = (win_y - my) / (float) win_y * 2.0 - 1.0;
 
@@ -288,7 +299,7 @@ static void key_func(unsigned char key, int x, int y) {
             if (std::isdigit(key)) {
                 dsim = 0;
                 clear_vector_data();
-                set_scene(key - '0', pVector, fVector, cVector);
+                set_scene(key - '0', pVector, fVector, cVector, oVector);
                 std::cout << "Switched to scene " << key << "." << std::endl;
             }
     }
@@ -329,7 +340,7 @@ static void reshape_func(int width, int height) {
 static void idle_func(void) {
     handle_user_interaction();
     if (dsim) {
-        simulation_step(pVector, fVector, cVector, dt, *integration_scheme);
+        simulation_step(pVector, fVector, cVector, oVector, dt, *integration_scheme);
     } else {
         // get_from_UI();
         remap_GUI();
@@ -343,6 +354,7 @@ static void display_func(void) {
     draw_forces();
     draw_constraints();
     draw_particles();
+    draw_collidable_objects();
 
     post_display();
 }
