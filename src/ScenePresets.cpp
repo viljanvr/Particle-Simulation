@@ -14,6 +14,7 @@
 #include "SpringForce.h"
 #include <cmath>
 #include "gfx/vec2.h"
+#include "FixedEndpointSpringForce.h"
 
 void three_body_problem_scene(std::vector<Particle *> &pVector, std::vector<Force *> &fVector,
                               std::vector<Constraint *> &cVector, bool visualizeForces) {
@@ -197,9 +198,6 @@ void attachCloth(size_t cols, double spacing, std::vector<Particle *> &pVector, 
         idx2 = std::min(idx2, pVector.size() - 1);
 
         Vec2f pos((idx1 + idx2) * 0.5 * spacing - centerOffset, supportHeight);
-        // Create particle, save address for later
-        Particle* top = new Particle(pos, visualizeForces, pVector.size());
-        pVector.push_back(top);
 
         double euclidean = std::sqrt(
         (pVector[idx1]->m_ConstructPos[0] - pos[0]) * (pVector[idx1]->m_ConstructPos[0] - pos[0]) +
@@ -207,12 +205,10 @@ void attachCloth(size_t cols, double spacing, std::vector<Particle *> &pVector, 
         );
         // std::cout << pVector[idx1]->m_ConstructPos << " " << pos <<  " " << euclidean << std::endl;
         // Connecting to bottom two particles
-        fVector.push_back(new SpringForce(pVector[idx1], top, euclidean, 1.0, 0.1));
-        fVector.push_back(new SpringForce(pVector[idx2], top, euclidean, 1.0, 0.1));
-        cVector.push_back(new CircularWireConstraint(top, pos + Vec2f(0.0,circleRadius), circleRadius, cVector.size()));
+        fVector.push_back(new FixedEndpointSpringForce(pVector[idx1], pos, euclidean, 1.0, 0.1));
+        fVector.push_back(new FixedEndpointSpringForce(pVector[idx2], pos, euclidean, 1.0, 0.1));
 
-        std::vector<Particle*> filteredParticles(pVector.begin(), pVector.end() - nrSupport);
-        fVector.push_back(new LinearForce(filteredParticles, Vec2f(0.0, -0.001)));
+        fVector.push_back(new LinearForce(pVector, Vec2f(0.0, -0.001)));
         fVector.push_back(new QuadraticDragForce(pVector, 2.0));
     }
 }
