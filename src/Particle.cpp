@@ -1,4 +1,5 @@
 #include "Particle.h"
+#include "gfx/vec2.h"
 
 #if defined(__APPLE__) && defined(__aarch64__)
 #include <GLUT/glut.h>
@@ -6,20 +7,23 @@
 #include <GL/glut.h>
 #endif
 
-Particle::Particle(const Vec2f &ConstructPos, bool forceVisualization, size_t index) :
-    m_ConstructPos(ConstructPos), m_Position(Vec2f(0.0, 0.0)), m_Velocity(Vec2f(0.0, 0.0)), m_Forces(Vec2f(0.0, 0.0)),
-    m_Mass(1.0), m_forceVisualization(forceVisualization) , m_index(index) {}
+Particle::Particle(const Vec2f &ConstructPos, bool forceVisualization, size_t index, double mass,
+                   const Vec2f &ConstructionVelocity) :
+    m_ConstructPos(ConstructPos), m_ConstructionVelocity(ConstructionVelocity), m_Position(Vec2f(0.0, 0.0)),
+    m_Velocity(Vec2f(0.0, 0.0)), m_Forces(Vec2f(0.0, 0.0)), m_Mass(mass), m_forceVisualization(forceVisualization),
+    m_index(index) {}
 
 Particle::~Particle() = default;
 
 void Particle::reset() {
     m_Position = m_ConstructPos;
-    m_Velocity = Vec2f(0.0, 0.0);
+    m_PreviousPosition = m_ConstructPos;
+    m_Velocity = m_ConstructionVelocity;
+    m_PreviousVelocity = m_ConstructionVelocity;
     m_Forces = Vec2f(0.0, 0.0);
-    m_Mass = 1.0;
 }
 void Particle::draw() {
-    const double h = 0.03;
+    const double h = 0.025 * sqrt(m_Mass);
     glColor3f(1.f, 1.f, 1.f);
     glBegin(GL_QUADS);
     glVertex2f(m_Position[0] - h / 2.0, m_Position[1] - h / 2.0);

@@ -2,9 +2,9 @@
 #include "Force.h"
 #include "Particle.h"
 
-class GravityForce : public Force{
+class LinearForce : public Force{
 public:
-    GravityForce(std::vector<Particle*> particles, Vec2f G);
+    LinearForce(std::vector<Particle*> particles, Vec2f G);
     void applyForce() override;
     void draw() override;
 
