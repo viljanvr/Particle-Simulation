@@ -1,6 +1,7 @@
 #include "MidpointScheme.h"
 
-void MidpointScheme::updateParticlesBasedOnForce(std::vector<Particle *> particles, derivEvalFunction updateForces, float dt) {
+void MidpointScheme::updateParticlesBasedOnForce(std::vector<Particle *> particles, derivEvalFunction updateForces,
+                                                      JacobianFunction getJx, JacobianFunction getJv, float dt) {
     updateForces();
 
     std::vector<Vec2f> original_positions;

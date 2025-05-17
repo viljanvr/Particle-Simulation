@@ -2,6 +2,7 @@
 //
 
 #include <EulerScheme.h>
+#include <ImplicitEulerScheme.h>
 #include <IntegrationScheme.h>
 #include <MidpointScheme.h>
 #include <RungeKuttaScheme.h>
@@ -295,6 +296,11 @@ static void key_func(unsigned char key, int x, int y) {
         case 'R':
             integration_scheme = std::make_unique<RungeKuttaScheme>();
             std::cout << "Switched to RangeKuttaScheme." << std::endl;
+            break;
+        case 'i':
+        case 'I':
+            integration_scheme = std::make_unique<ImplicitEulerScheme>();
+            std::cout << "Switched to ImplicitEulerScheme." << std::endl;
             break;
         case 'f':
         case 'F':

@@ -3,15 +3,16 @@
 #include "Particle.h"
 #include <vector>
 
-struct JacobianEntry {
-    Particle *const p;
-    double x;
-    double y;
-};
-
 class Constraint {
 
 public:
+
+    struct JacobianEntry {
+        Particle *const p;
+        double x;
+        double y;
+    };
+
     virtual ~Constraint() = default;
     explicit Constraint(size_t index) : m_index(index) {};
     virtual std::vector<JacobianEntry> getJacobian() = 0;

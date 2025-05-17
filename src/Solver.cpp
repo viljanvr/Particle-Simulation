@@ -32,12 +32,12 @@ void apply_constraint_forces_to_particles(std::vector<Particle *> pVector, std::
 
     for (auto c: cVector) {
         for (auto jacobianEntry: c->getJacobian()) {
-            J.addCell(c->m_index, jacobianEntry.p->m_index * DIMS, jacobianEntry.x);
-            J.addCell(c->m_index, jacobianEntry.p->m_index * DIMS + 1, jacobianEntry.y);
+            J.addToCell(c->m_index, jacobianEntry.p->m_index * DIMS, jacobianEntry.x);
+            J.addToCell(c->m_index, jacobianEntry.p->m_index * DIMS + 1, jacobianEntry.y);
         }
         for (auto jacobianEntry: c->getJacobianDeriv()) {
-            JDeriv.addCell(c->m_index, jacobianEntry.p->m_index * DIMS, jacobianEntry.x);
-            JDeriv.addCell(c->m_index, jacobianEntry.p->m_index * DIMS + 1, jacobianEntry.y);
+            JDeriv.addToCell(c->m_index, jacobianEntry.p->m_index * DIMS, jacobianEntry.x);
+            JDeriv.addToCell(c->m_index, jacobianEntry.p->m_index * DIMS + 1, jacobianEntry.y);
         }
     }
 
@@ -101,6 +101,35 @@ void compute_total_forces(const std::vector<Particle *> &pVector, const std::vec
     apply_constraint_forces_to_particles(pVector, cVector);
 }
 
+SparseMatrix getForceJacobianX(const std::vector<Particle *> &pVector, const std::vector<Force *> &fVector) {
+    size_t n = pVector.size() * DIMS;
+    SparseMatrix j(n, n);
+    for (auto force : fVector) {
+        for (auto jacobianEntry : force->getJx()) {
+            j.addToCell(jacobianEntry.p1->m_index * 2, jacobianEntry.p2->m_index * 2, jacobianEntry.xx);
+            j.addToCell(jacobianEntry.p1->m_index * 2, jacobianEntry.p2->m_index * 2 + 1, jacobianEntry.xy);
+            j.addToCell(jacobianEntry.p1->m_index * 2 + 1, jacobianEntry.p2->m_index * 2, jacobianEntry.yx);
+            j.addToCell(jacobianEntry.p1->m_index * 2 + 1, jacobianEntry.p2->m_index * 2 + 1, jacobianEntry.yy);
+        }
+    }
+    return j;
+}
+
+SparseMatrix getForceJacobianV(const std::vector<Particle *> &pVector, const std::vector<Force *> &fVector) {
+    size_t n = pVector.size() * DIMS;
+    SparseMatrix j(n, n);
+    for (auto force : fVector) {
+        for (auto jacobianEntry : force->getJv()) {
+            j.addToCell(jacobianEntry.p1->m_index * 2, jacobianEntry.p2->m_index * 2, jacobianEntry.xx);
+            j.addToCell(jacobianEntry.p1->m_index * 2, jacobianEntry.p2->m_index * 2 + 1, jacobianEntry.xy);
+            j.addToCell(jacobianEntry.p1->m_index * 2 + 1, jacobianEntry.p2->m_index * 2, jacobianEntry.yx);
+            j.addToCell(jacobianEntry.p1->m_index * 2 + 1, jacobianEntry.p2->m_index * 2 + 1, jacobianEntry.yy);
+        }
+    }
+    return j;
+}
+
+
 void simulation_step(const std::vector<Particle *> &pVector, const std::vector<Force *> &fVector,
                      const std::vector<Constraint *> &cVector, const std::vector<CollideableObject *> &oVector,
                      const float dt, IntegrationScheme &integration_scheme) {
@@ -109,7 +138,11 @@ void simulation_step(const std::vector<Particle *> &pVector, const std::vector<F
         p->m_PreviousVelocity = p->m_Velocity;
     }
     integration_scheme.updateParticlesBasedOnForce(
-            pVector, [&]() { compute_total_forces(pVector, fVector, cVector); }, dt);
+            pVector,
+            [&]() { compute_total_forces(pVector, fVector, cVector); },
+            [&]() { return getForceJacobianX(pVector, fVector); },
+            [&]() { return getForceJacobianV(pVector, fVector); },
+            dt);
 
     for (auto o: oVector) {
         o->detect_collision();

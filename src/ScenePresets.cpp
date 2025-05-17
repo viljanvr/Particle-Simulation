@@ -45,8 +45,8 @@ void set_scene(int scene, std::vector<Particle *> &pVector, std::vector<Force *>
             pVector.push_back(new Particle(center + 1 * offset, visualizeForces, 1));
             pVector.push_back(new Particle(center + 2 * offset, visualizeForces, 2));
 
-            fVector.push_back(new SpringForce(pVector[0], pVector[1], 0.1, 1.0, 1.0));
-            fVector.push_back(new SpringForce(pVector[1], pVector[2], 0.1, 1.0, 1.0));
+            fVector.push_back(new SpringForce(pVector[0], pVector[1], 0.1, 1.0, 0.5));
+            fVector.push_back(new SpringForce(pVector[1], pVector[2], 0.1, 1.0, 0.5));
             break;
         case 3: {
             const double total_height = 0.5;

@@ -1,6 +1,7 @@
 #include "RungeKuttaScheme.h"
 
-void RungeKuttaScheme::updateParticlesBasedOnForce(std::vector<Particle *> particles, derivEvalFunction updateForces, float dt) {
+void RungeKuttaScheme::updateParticlesBasedOnForce(std::vector<Particle *> particles, derivEvalFunction updateForces,
+                                                      JacobianFunction getJx, JacobianFunction getJv, float dt) {
     std::vector<Vec2f> original_positions;
     std::vector<Vec2f> original_velocities;
     for (auto particle : particles) {

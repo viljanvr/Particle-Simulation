@@ -8,12 +8,12 @@
 
 #define PI 3.1415926535897932384626433832795
 
-std::vector<JacobianEntry> CircularWireConstraint::getJacobian() {
+std::vector<Constraint::JacobianEntry> CircularWireConstraint::getJacobian() {
     return {JacobianEntry{m_p, 2.0 * (m_p->m_Position[0] - m_center[0]),
                           2.0 * (m_p->m_Position[1] - m_center[1])}};
 }
 
-std::vector<JacobianEntry> CircularWireConstraint::getJacobianDeriv() {
+std::vector<Constraint::JacobianEntry> CircularWireConstraint::getJacobianDeriv() {
     return {JacobianEntry{m_p, 2.0 * (m_p->m_Velocity[0]),
                           2.0 * (m_p->m_Velocity[1])}};
 }

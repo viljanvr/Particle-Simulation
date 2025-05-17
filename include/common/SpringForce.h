@@ -7,6 +7,8 @@ public:
     SpringForce(Particle *p1, Particle *p2, double dist, double ks, double kd);
     void applyForce() override;
     void draw() override;
+    std::vector<JacobianEntry> getJx() override;
+    std::vector<JacobianEntry> getJv() override;
 
 private:
     Particle *const m_p1; // particle 1

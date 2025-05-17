@@ -8,7 +8,7 @@
 
 RodConstraintVar::RodConstraintVar(Particle *p1, Particle *p2, double dist, size_t index) : Constraint(index), m_p1(p1), m_p2(p2), m_dist(dist) {}
 
-std::vector<JacobianEntry> RodConstraintVar::getJacobian() {
+std::vector<Constraint::JacobianEntry> RodConstraintVar::getJacobian() {
     double dist = getC() + m_dist;
     return {JacobianEntry{m_p1, (m_p1->m_Position[0] - m_p2->m_Position[0]) / dist,
                           (m_p1->m_Position[1] - m_p2->m_Position[1]) / dist},
@@ -16,7 +16,7 @@ std::vector<JacobianEntry> RodConstraintVar::getJacobian() {
                           - (m_p1->m_Position[1] - m_p2->m_Position[1]) / dist}};
 }
 
-std::vector<JacobianEntry> RodConstraintVar::getJacobianDeriv() {
+std::vector<Constraint::JacobianEntry> RodConstraintVar::getJacobianDeriv() {
     double dist = getC() + m_dist;
     double interim = getCDeriv() * dist;
     return {JacobianEntry{m_p1, - interim * (m_p1->m_Position[0] - m_p2->m_Position[0]) / pow(dist, 3) + (m_p1->m_Velocity[0] - m_p2->m_Velocity[0]) / dist,

@@ -4,5 +4,6 @@
 
 class MidpointScheme : public IntegrationScheme {
 public:
-    void updateParticlesBasedOnForce(std::vector<Particle *> particles, derivEvalFunction updateForces, float dt) override;
+    void updateParticlesBasedOnForce(std::vector<Particle *> particles, derivEvalFunction updateForces,
+                                     JacobianFunction getJx, JacobianFunction getJv, float dt) override;
 };
