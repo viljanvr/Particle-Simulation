@@ -119,8 +119,8 @@ void set_scene(int scene, std::vector<Particle *> &pVector, std::vector<Force *>
         } break;
 		case 8:
 			{
-				constructCloth(5, 10, 0.1, true, false, pVector, fVector, cVector, visualizeForces);
-                attachCloth(10, 0.1, pVector, fVector, cVector, visualizeForces);
+				constructCloth(8, 40, 0.045, true, false, pVector, fVector, cVector, visualizeForces);
+                attachCloth(40, 0.045, pVector, fVector, cVector, visualizeForces);
 			}
             break;
 
@@ -143,6 +143,10 @@ void constructCloth(size_t rows, size_t cols, double spacing, bool diagonal, boo
     size_t idx = 0;
     spacing += 0.001;
     double diagonalDist = std::sqrt(spacing*spacing + spacing*spacing);
+    double spring_stiffness = 8.0;
+    double spring_damping = 0.5;
+    double spring_stiffness_diagonal = 8.0;
+    double spring_damping_diagonal = 0.5;
     // Adding springs/rods, diagonals are optional
     for (size_t i = 0; i < rows; i++) {
         for (size_t j = 0; j < cols; j++) {
@@ -151,13 +155,13 @@ void constructCloth(size_t rows, size_t cols, double spacing, bool diagonal, boo
                 if (useRods) {
                 	cVector.push_back(new RodConstraintVar(pVector[idx], pVector[idx + 1], spacing, cVector.size()));
                 } else {
-                	fVector.push_back(new SpringForce(pVector[idx], pVector[idx + 1], spacing, 0.2, 0.4));
+                	fVector.push_back(new SpringForce(pVector[idx], pVector[idx + 1], spacing, spring_stiffness, spring_damping));
                 }
                 if (diagonal && i != rows - 1) {	// right-down diagonal
                     if (useRods) {
                     	cVector.push_back(new RodConstraintVar(pVector[idx], pVector[idx + cols + 1], diagonalDist, cVector.size()));
                     } else {
-                    	fVector.push_back(new SpringForce(pVector[idx], pVector[idx + cols + 1], diagonalDist, 0.2, 0.4));
+                    	fVector.push_back(new SpringForce(pVector[idx], pVector[idx + cols + 1], diagonalDist, spring_stiffness_diagonal, spring_damping_diagonal));
                     }
             	}
             }
@@ -165,13 +169,13 @@ void constructCloth(size_t rows, size_t cols, double spacing, bool diagonal, boo
 				if (useRods) {
                 	cVector.push_back(new RodConstraintVar(pVector[idx], pVector[idx + cols], spacing, cVector.size()));
                 } else {
-                	fVector.push_back(new SpringForce(pVector[idx], pVector[idx + cols], spacing, 0.2, 0.4));
+                	fVector.push_back(new SpringForce(pVector[idx], pVector[idx + cols], spacing, spring_stiffness, spring_damping));
                 }
 				if (diagonal && j != 0) {	// left-down diagonal
                     if (useRods) {
                     	cVector.push_back(new RodConstraintVar(pVector[idx], pVector[idx + cols - 1], diagonalDist, cVector.size()));
                     } else {
-                    	fVector.push_back(new SpringForce(pVector[idx], pVector[idx + cols - 1], diagonalDist, 0.2, 0.4));
+                    	fVector.push_back(new SpringForce(pVector[idx], pVector[idx + cols - 1], diagonalDist, spring_stiffness_diagonal, spring_damping_diagonal));
                     }
 				}
             }
@@ -205,10 +209,11 @@ void attachCloth(size_t cols, double spacing, std::vector<Particle *> &pVector, 
         );
         // std::cout << pVector[idx1]->m_ConstructPos << " " << pos <<  " " << euclidean << std::endl;
         // Connecting to bottom two particles
-        fVector.push_back(new FixedEndpointSpringForce(pVector[idx1], pos, euclidean, 1.0, 0.1));
-        fVector.push_back(new FixedEndpointSpringForce(pVector[idx2], pos, euclidean, 1.0, 0.1));
+        fVector.push_back(new FixedEndpointSpringForce(pVector[idx1], pos, 0, 10.0, 0.1));
+        fVector.push_back(new FixedEndpointSpringForce(pVector[idx2], pos, 0, 10.0, 0.1));
 
-        fVector.push_back(new LinearForce(pVector, Vec2f(0.0, -0.001)));
+        fVector.push_back(new LinearForce(pVector, Vec2f(0.0, -0.01)));
+        //Wind
         fVector.push_back(new QuadraticDragForce(pVector, 2.0));
     }
 }
