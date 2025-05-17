@@ -187,7 +187,6 @@ void constructCloth(size_t rows, size_t cols, double spacing, bool diagonal, boo
 void attachCloth(size_t cols, double spacing, std::vector<Particle *> &pVector, std::vector<Force *> &fVector,
                  std::vector<Constraint *> &cVector, bool visualizeForces){
     const double centerOffset = 0.5 * cols * spacing;
-    const double circleRadius = 0.001;
     const double supportHeight = 2 * spacing;  // Height relative to cloth
     const size_t nrSupport = 5; // Amount of constraint support particel
     const size_t interPos =  cols / nrSupport; // For dividing the supports uniformly
@@ -203,10 +202,6 @@ void attachCloth(size_t cols, double spacing, std::vector<Particle *> &pVector, 
 
         Vec2f pos((idx1 + idx2) * 0.5 * spacing - centerOffset, supportHeight);
 
-        double euclidean = std::sqrt(
-        (pVector[idx1]->m_ConstructPos[0] - pos[0]) * (pVector[idx1]->m_ConstructPos[0] - pos[0]) +
-            (pVector[idx1]->m_ConstructPos[1] - pos[1]) * (pVector[idx1]->m_ConstructPos[1] - pos[1])
-        );
         // std::cout << pVector[idx1]->m_ConstructPos << " " << pos <<  " " << euclidean << std::endl;
         // Connecting to bottom two particles
         fVector.push_back(new FixedEndpointSpringForce(pVector[idx1], pos, 0, 10.0, 0.1));
