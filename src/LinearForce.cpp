@@ -8,4 +8,13 @@ void LinearForce::applyForce() {
     }
 }
 
+std::vector<Force::JacobianEntry> LinearForce::getJx() {
+    return {};
+}
+
+std::vector<Force::JacobianEntry> LinearForce::getJv() {
+    return {};
+}
+
+
 void LinearForce::draw() {}
