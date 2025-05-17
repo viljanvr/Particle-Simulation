@@ -10,6 +10,7 @@
 #include "GravityForce.h"
 #include "RodConstraint.h"
 #include "SpringForce.h"
+#include <cmath>
 
 void set_scene(int scene, std::vector<Particle *> &pVector, std::vector<Force *> &fVector,
                std::vector<Constraint *> &cVector, bool visualizeForces) {
@@ -84,10 +85,103 @@ void set_scene(int scene, std::vector<Particle *> &pVector, std::vector<Force *>
             }
         }
             break;
-
+		case 5:
+			{
+				constructCloth(5, 10, 0.1, true, false, pVector, fVector, cVector, visualizeForces);
+                attachCloth(10, 0.1, pVector, fVector, cVector, visualizeForces);
+			}
+            break;
 
         default:
             pVector.push_back(new Particle(center, visualizeForces, 0));
             break;
+    }
+}
+
+
+void constructCloth(size_t rows, size_t cols, double spacing, bool diagonal, bool useRods, std::vector<Particle *> &pVector,
+                     std::vector<Force *> &fVector, std::vector<Constraint *> &cVector, bool visualizeForces) {
+    const double offset = 0.5 * cols * spacing;
+    for (size_t i = 0; i < rows; i++) { // Creating particle grid
+        for (size_t j = 0; j < cols; j++) {
+            pVector.push_back(new Particle(Vec2f(j * spacing - offset, -(i * spacing)), visualizeForces, pVector.size()));
+        }
+    }
+
+    size_t idx = 0;
+    spacing += 0.001;
+    double diagonalDist = std::sqrt(spacing*spacing + spacing*spacing);
+    // Adding springs/rods, diagonals are optional
+    for (size_t i = 0; i < rows; i++) {
+        for (size_t j = 0; j < cols; j++) {
+            idx = i * cols + j;
+            if (j != cols - 1) {
+                if (useRods) {
+                	cVector.push_back(new RodConstraintVar(pVector[idx], pVector[idx + 1], spacing, cVector.size()));
+                } else {
+                	fVector.push_back(new SpringForce(pVector[idx], pVector[idx + 1], spacing, 0.2, 0.4));
+                }
+                if (diagonal && i != rows - 1) {	// right-down diagonal
+                    if (useRods) {
+                    	cVector.push_back(new RodConstraintVar(pVector[idx], pVector[idx + cols + 1], diagonalDist, cVector.size()));
+                    } else {
+                    	fVector.push_back(new SpringForce(pVector[idx], pVector[idx + cols + 1], diagonalDist, 0.2, 0.4));
+                    }
+            	}
+            }
+            if (i != rows - 1) {	// Vertical
+				if (useRods) {
+                	cVector.push_back(new RodConstraintVar(pVector[idx], pVector[idx + cols], spacing, cVector.size()));
+                } else {
+                	fVector.push_back(new SpringForce(pVector[idx], pVector[idx + cols], spacing, 0.2, 0.4));
+                }
+				if (diagonal && j != 0) {	// left-down diagonal
+                    if (useRods) {
+                    	cVector.push_back(new RodConstraintVar(pVector[idx], pVector[idx + cols - 1], diagonalDist, cVector.size()));
+                    } else {
+                    	fVector.push_back(new SpringForce(pVector[idx], pVector[idx + cols - 1], diagonalDist, 0.2, 0.4));
+                    }
+				}
+            }
+        }
+    }
+}
+
+
+void attachCloth(size_t cols, double spacing, std::vector<Particle *> &pVector, std::vector<Force *> &fVector,
+                 std::vector<Constraint *> &cVector, bool visualizeForces){
+    const double centerOffset = 0.5 * cols * spacing;
+    const double circleRadius = 0.001;
+    const double supportHeight = 2 * spacing;  // Height relative to cloth
+    const size_t nrSupport = 5; // Amount of constraint support particel
+    const size_t interPos =  cols / nrSupport; // For dividing the supports uniformly
+
+    for (size_t i = 0; i < nrSupport; i++) {
+        double center = (i + 0.5) * interPos;   // Center of this support particle
+        size_t idx1 = static_cast<size_t>(center - 0.5);
+        size_t idx2 = static_cast<size_t>(center + 0.5);
+
+        // Clamp to valid indices
+        idx1 = std::min(idx1, pVector.size() - 1);
+        idx2 = std::min(idx2, pVector.size() - 1);
+
+        Vec2f pos((idx1 + idx2) * 0.5 * spacing - centerOffset, supportHeight);
+        // Create particle, save address for later
+        Particle* top = new Particle(pos, visualizeForces, pVector.size());
+        pVector.push_back(top);
+
+        double euclidean = std::sqrt(
+        (pVector[idx1]->m_ConstructPos[0] - pos[0]) * (pVector[idx1]->m_ConstructPos[0] - pos[0]) +
+            (pVector[idx1]->m_ConstructPos[1] - pos[1]) * (pVector[idx1]->m_ConstructPos[1] - pos[1])
+        );
+        // std::cout << pVector[idx1]->m_ConstructPos << " " << pos <<  " " << euclidean << std::endl;
+        // Connecting to bottom two particles
+        fVector.push_back(new SpringForce(pVector[idx1], top, euclidean, 1.0, 0.1));
+        fVector.push_back(new SpringForce(pVector[idx2], top, euclidean, 1.0, 0.1));
+        cVector.push_back(new CircularWireConstraint(top, pos + Vec2f(0.0,circleRadius), circleRadius, cVector.size()));
+
+        std::vector<Particle*> filteredParticles(pVector.begin(), pVector.end() - nrSupport);
+        fVector.push_back(new GravityForce(filteredParticles, Vec2f(0.0, -0.001)));
+        fVector.push_back(new QuadraticDragForce(pVector, 2.0));
     }
 }

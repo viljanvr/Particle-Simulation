@@ -7,4 +7,5 @@ obj/
 
 .DS_Store
 
-.idea/editor.xml
+idea/editor.xml
+idea/misc.xml
