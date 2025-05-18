@@ -4,17 +4,25 @@
 #include <LinearDragForce.h>
 #include <LinearForce.h>
 #include <QuadraticDragForce.h>
+#include <cstring>
+#include <cmath>
+
 #include "Plane.h"
-
 #include "RodConstraintVar.h"
-
 #include "CircularWireConstraint.h"
 #include "GravitationalForce.h"
 #include "RodConstraint.h"
 #include "SpringForce.h"
-#include <cmath>
 #include "gfx/vec2.h"
 #include "FixedEndpointSpringForce.h"
+
+#if defined(__APPLE__) && defined(__aarch64__)
+#include <GLUT/glut.h>
+#else
+#include <GL/glut.h>
+#endif
+
+std::string currentSceneName = "Unnamed Scene";
 
 void three_body_problem_scene(std::vector<Particle *> &pVector, std::vector<Force *> &fVector,
                               std::vector<Constraint *> &cVector, bool visualizeForces) {
@@ -33,6 +41,8 @@ void set_scene(int scene, std::vector<Particle *> &pVector, std::vector<Force *>
 
     switch (scene) {
         case 1:
+            currentSceneName = "Pendulum";
+
             pVector.push_back(new Particle(center + offset, visualizeForces, 0));
             pVector.push_back(new Particle(center + offset + Vec2f(0.001, dist), visualizeForces, 1));
 
@@ -43,6 +53,7 @@ void set_scene(int scene, std::vector<Particle *> &pVector, std::vector<Force *>
             break;
 
         case 2:
+            currentSceneName = "Double spring";
             pVector.push_back(new Particle(center + 0 * offset, visualizeForces, 0));
             pVector.push_back(new Particle(center + 1 * offset, visualizeForces, 1));
             pVector.push_back(new Particle(center + 2 * offset, visualizeForces, 2));
@@ -51,6 +62,8 @@ void set_scene(int scene, std::vector<Particle *> &pVector, std::vector<Force *>
             fVector.push_back(new SpringForce(pVector[1], pVector[2], 0.1, 1.0, 0.5));
             break;
         case 3: {
+            currentSceneName = "None vs. Quadratic Drag Force";
+
             const double total_height = 0.5;
             const size_t particles = 3;
             const double rod_length = total_height / particles;
@@ -83,13 +96,15 @@ void set_scene(int scene, std::vector<Particle *> &pVector, std::vector<Force *>
 
         } break;
         case 4: {
+            currentSceneName = "Angular Springs";
             constexpr double total_height = 0.8;
             constexpr size_t particles = 15;
             constexpr double rod_length = total_height / particles;
+            Vec2f offset (0.0, -0.3);
 
             for (size_t i = 0; i < particles; i++) {
                 pVector.push_back(
-                        new Particle(center + (i + 1) * Vec2f(0, rod_length), visualizeForces, pVector.size()));
+                        new Particle(center + (i + 1) * Vec2f(0, rod_length) + offset, visualizeForces, pVector.size()));
             }
 
             for (size_t i = 2; i < particles; i++) {
@@ -102,14 +117,17 @@ void set_scene(int scene, std::vector<Particle *> &pVector, std::vector<Force *>
             }
         } break;
         case 5:
+            currentSceneName = "Three-Body Problem";
             three_body_problem_scene(pVector, fVector, cVector, visualizeForces);
             break;
         case 6:
+            currentSceneName = "Ground Collision";
             pVector.push_back(new Particle(center, visualizeForces, 0));
             oVector.push_back(new Plane(Vec2f(0.0, -0.5), Vec2f(0.0, 1.0), pVector, 0.001));
             fVector.push_back(new LinearForce({pVector[0]}, Vec2f(0.00, -0.03)));
             break;
         case 7: {
+            currentSceneName = "Down-Hill Collision";
             Vec2f position = Vec2f(-0.75, 0.5);
             pVector.push_back(new Particle(position + offset, visualizeForces, 0));
             pVector.push_back(new Particle(position, visualizeForces, 1));
@@ -119,12 +137,14 @@ void set_scene(int scene, std::vector<Particle *> &pVector, std::vector<Force *>
         } break;
 		case 8:
 			{
+		        currentSceneName = "Cloth";
 				constructCloth(8, 40, 0.045, true, false, pVector, fVector, cVector, visualizeForces);
                 attachCloth(40, 0.045, pVector, fVector, cVector, visualizeForces);
 			}
             break;
 
         default:
+            currentSceneName = "Default: Single Particle";
             pVector.push_back(new Particle(center, visualizeForces, 0));
             break;
     }
@@ -211,4 +231,22 @@ void attachCloth(size_t cols, double spacing, std::vector<Particle *> &pVector, 
         //Wind
         fVector.push_back(new QuadraticDragForce(pVector, 2.0));
     }
+}
+
+void drawText(const char* text, float x, float y) {
+    // glClear(GL_COLOR_BUFFER_BIT);
+    // // glBegin(GL_LINES);
+    // glColor3f(1.0f, 1.0f, 1.0f);
+    // glRasterPos2f(x, y);
+    // for (size_t i = 0; i < strlen(text); ++i) {
+    //     glutBitmapCharacter(GLUT_BITMAP_HELVETICA_18, text[i]);
+    // }
+    // // glEnd();
+    // glutSwapBuffers();
+    glBegin(GL_LINES);
+    glColor3f(0.8, 0.7, 0.6);
+    glVertex2f(0.0,0.0);
+    glColor3f(0.8, 0.7, 0.6);
+    glVertex2f(0.0,1.0);
+    glEnd();
 }

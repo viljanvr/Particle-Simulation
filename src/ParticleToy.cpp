@@ -26,6 +26,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <vector>
+#include <cstring>
 
 #if defined(__APPLE__) && defined(__aarch64__)
 #include <GLUT/glut.h>
@@ -62,6 +63,7 @@ static std::vector<CollideableObject *> oVector;
 static Force *mouse_interact_force;
 static std::unique_ptr<Particle> mouse_particle = std::make_unique<Particle>(Vec2f(mx, my), visualizeForces, 100);
 static std::unique_ptr<IntegrationScheme> integration_scheme = std::make_unique<RungeKuttaScheme>();
+extern std::string currentSceneName;
 
 /*
 ----------------------------------------------------------------------
@@ -161,6 +163,27 @@ static void draw_constraints(void) {
 static void draw_collidable_objects() {
     for (auto o: oVector) {
         o->draw();
+    }
+}
+
+static int getBitmapStringWidth(const std::string& text, void* font) {
+    int width = 0;
+    for (char c : text) {
+        width += glutBitmapWidth(font, c);
+    }
+    return width;
+}
+
+static void draw_title() {
+    void* font = GLUT_BITMAP_HELVETICA_18;
+    // Center depends on string length
+    float centered_x = - static_cast<float>(getBitmapStringWidth(currentSceneName, font))
+                            / static_cast<float>(win_x);
+
+    glColor3f(1.0, 1.0, 1.0);
+    glRasterPos2f(centered_x, 0.9);
+    for (char c : currentSceneName) {
+        glutBitmapCharacter(font, c);
     }
 }
 
@@ -313,7 +336,7 @@ static void key_func(unsigned char key, int x, int y) {
                 dsim = 0;
                 clear_vector_data();
                 set_scene(key - '0', pVector, fVector, cVector, oVector, visualizeForces);
-                std::cout << "Switched to scene " << key << "." << std::endl;
+                std::cout << "Switched to scene " << key << ": " << currentSceneName << "." << std::endl;
             }
     }
 }
@@ -362,12 +385,15 @@ static void idle_func(void) {
     glutPostRedisplay();
 }
 
+
+
 static void display_func(void) {
     pre_display();
     draw_forces();
     draw_constraints();
     draw_particles();
     draw_collidable_objects();
+    draw_title();
 
     post_display();
 }
@@ -431,7 +457,7 @@ int main(int argc, char **argv) {
     printf("\t Toggle construction/simulation display with the spacebar key\n");
     printf("\t Dump frames by pressing the 'd' key\n");
     printf("\t Quit by pressing the 'q' key\n");
-    printf("\t Switch integreation scheme by using 'e', 'm' and 'r'\n");
+    printf("\t Switch integration scheme by using 'e', 'm' and 'r'\n");
     printf("\t Toggle force visualization by pressing the 'f' key\n");
     printf("\t Switch to a given scene using '1-9'\n");
 

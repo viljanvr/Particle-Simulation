@@ -1,5 +1,6 @@
 #pragma once
 #include <gfx/vec2.h>
+#include <vector>
 #include "CollideableObject.h"
 #include "Particle.h"
 
