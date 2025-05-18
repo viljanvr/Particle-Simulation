@@ -129,6 +129,31 @@ SparseMatrix getForceJacobianV(const std::vector<Particle *> &pVector, const std
     return j;
 }
 
+void handle_collisions(const std::vector<CollideableObject *> &oVector) {
+    // We want to backtrack everything to the earliest collision;
+    Collision earliest_collision {nullptr, {0, 0}, 0.0};
+    CollideableObject *earliest_collision_object = nullptr;
+    for (auto o: oVector) {
+        Collision collision = o->get_earliest_collision();
+        if (collision.p == nullptr) {
+            continue;
+        }
+        if (earliest_collision_object == nullptr || earliest_collision.backtracking_factor < collision.backtracking_factor) {
+            earliest_collision = collision;
+            earliest_collision_object = o;
+        }
+    }
+    if (earliest_collision_object != nullptr) {
+        for (auto o : oVector) {
+            o->backtrack_particles(earliest_collision.backtracking_factor);
+        }
+
+        // Only for the earliest collision, we want to update the particle right now, since backtracking might have
+        // undone some collisions.
+        earliest_collision_object->bounce_single_particle(earliest_collision);
+    }
+}
+
 
 void simulation_step(const std::vector<Particle *> &pVector, const std::vector<Force *> &fVector,
                      const std::vector<Constraint *> &cVector, const std::vector<CollideableObject *> &oVector,
@@ -144,7 +169,5 @@ void simulation_step(const std::vector<Particle *> &pVector, const std::vector<F
             [&]() { return getForceJacobianV(pVector, fVector); },
             dt);
 
-    for (auto o: oVector) {
-        o->detect_collision();
-    }
+    handle_collisions(oVector);
 }

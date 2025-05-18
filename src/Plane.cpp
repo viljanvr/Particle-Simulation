@@ -8,48 +8,36 @@
 #include <GL/glut.h>
 #endif
 
-Plane::Plane(const Vec2f &origin, const Vec2f &normal, std::vector<Particle *> particles, double epsilon, double kr) :
-    m_Origin(origin), m_Particles(particles), m_Epsilon(epsilon), m_kr(kr) {
+Plane::Plane(const Vec2f &origin, const Vec2f &normal, std::vector<Particle *> particles, double epsilon, double bounce) :
+    CollideableObject(std::move(particles), bounce), m_Origin(origin), m_Epsilon(epsilon) {
     m_Normal = normal / norm(normal);
 };
 
-void Plane::detect_collision() {
-    for (auto p: m_Particles) {
-        if ((p->m_Position - m_Origin) * m_Normal < m_Epsilon && m_Normal * p->m_Velocity < 0) {
-            backtrack_particles(p);
-            respond_collision(p);
-        }
-    }
+static float cross_product(const Vec2f &a, const Vec2f &b) { return a[0] * b[1] - a[1] * b[0]; }
+
+bool Plane::is_particle_colliding(Particle *p) const {
+    return (
+        (p->m_Position - m_Origin) * m_Normal < m_Epsilon
+        && m_Normal * p->m_Velocity < 0
+    );
 }
 
-void Plane::backtrack_particles(Particle *p) {
+Collision Plane::compute_collision_details(Particle *p) const {
     // Backtracking is only needed if the particle has crossed the plane
     if ((p->m_Position - m_Origin) * m_Normal > 0) {
-        return;
+        return Collision {p, m_Normal, 0.0};
     }
-    // std::cout << "Backtracking" << std::endl;
 
     Vec2f plane_dir = Vec2f(-m_Normal[1], m_Normal[0]);
-    float t = cross_product(m_Origin - p->m_PreviousPosition, plane_dir) /
+    float t = cross_product(m_Origin + m_Epsilon * m_Normal - p->m_PreviousPosition, plane_dir) /
               cross_product(p->m_Position - p->m_PreviousPosition, plane_dir);
-
-    for (auto x: m_Particles) {
-        x->m_Position = x->m_PreviousPosition + t * (x->m_Position - x->m_PreviousPosition);
+    if (t < 0) {
+        t = 0.0;
     }
+
+    return Collision {p, m_Normal, 1.0 - t};
 }
 
-float Plane::cross_product(const Vec2f &a, const Vec2f &b) { return a[0] * b[1] - a[1] * b[0]; }
-
-void Plane::respond_collision(Particle *p) {
-
-    // std::cout << "Collided - v = " << p->m_Velocity[0] << ", " << p->m_Velocity[1] << std::endl;
-
-    Vec2f vn = (m_Normal * p->m_Velocity) * m_Normal; // Velocity in the direction perpendicular to the wall
-    Vec2f vt = p->m_Velocity - vn; // Velocity in the direction paralell to the wall
-    p->m_Velocity = vt - m_kr * vn;
-
-    // std::cout << "After - v = " << p->m_Velocity[0] << ", " << p->m_Velocity[1] << std::endl;
-}
 
 void Plane::draw() {
     // Draw origin point
