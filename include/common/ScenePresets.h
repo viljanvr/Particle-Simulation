@@ -15,3 +15,5 @@ void constructCloth(size_t rows, size_t cols, double spacing, bool diagonal, boo
 
 void attachCloth(size_t cols, double spacing, std::vector<Particle *> &pVector, std::vector<Force *> &fVector,
                     std::vector<Constraint *> &cVector, bool visualizeForces);
+
+void drawText(const char* text, float x, float y);
