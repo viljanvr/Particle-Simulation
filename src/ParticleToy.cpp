@@ -20,6 +20,7 @@
 #include "imageio.h"
 
 #include <algorithm>
+#include <BlowForce.h>
 #include <cstddef>
 #include <iostream>
 #include <memory>
@@ -62,7 +63,7 @@ static std::vector<Force *> fVector;
 static std::vector<Constraint *> cVector;
 static std::vector<CollideableObject *> oVector;
 static Force *mouse_interact_force;
-static LinearForce *mouse_blow_force;
+static BlowForce *mouse_blow_force;
 static std::unique_ptr<Particle> mouse_particle = std::make_unique<Particle>(Vec2f(mx, my), visualizeForces, 100);
 static std::unique_ptr<IntegrationScheme> integration_scheme = std::make_unique<RungeKuttaScheme>();
 extern std::string currentSceneName;
@@ -195,13 +196,13 @@ relates mouse movements to particle toy construction
 ----------------------------------------------------------------------
 */
 
-static Vec2f getAverageParticlePosition() {
-    Vec2f sum(0.0f, 0.0f);
-    for (auto* p : pVector) {
-        sum += p->m_Position;
-    }
-    return sum / static_cast<float>(pVector.size());
-}
+// static Vec2f getAverageParticlePosition() {
+//     Vec2f sum(0.0f, 0.0f);
+//     for (auto* p : pVector) {
+//         sum += p->m_Position;
+//     }
+//     return sum / static_cast<float>(pVector.size());
+// }
 
 static void add_interact_force(int button) {
     float x_scaled = mx / (float) win_x * 2.0 - 1.0;
@@ -221,7 +222,7 @@ static void add_interact_force(int button) {
         }
     } else if (button == GLUT_RIGHT_BUTTON && !mouse_blow_force) {
         // Only creation, updating done in handle_user_interaction()
-        mouse_blow_force = new LinearForce(pVector, Vec2f(0.0,0.0));
+        mouse_blow_force = new BlowForce(pVector, Vec2f(0.0f,0.0f), 0.05f, 0.6f);
         fVector.push_back(mouse_blow_force);
     }
 }
@@ -248,11 +249,7 @@ static void handle_user_interaction() {
         mouse_particle->m_Position[0] = x_scaled;
         mouse_particle->m_Position[1] = y_scaled;
     } else if (mouse_state[GLUT_RIGHT_BUTTON] == GLUT_DOWN && mouse_blow_force) {
-        Vec2f dir = getAverageParticlePosition() - Vec2f(x_scaled, y_scaled);
-        const float strength = std::min(0.05f / norm(dir), 0.6f);
-        // std::cout <<"Strength: "<< strength << std::endl;
-        unitize(dir);
-        mouse_blow_force->setForce(dir * strength);
+        mouse_blow_force->setOrigin(Vec2f(x_scaled, y_scaled));
     }
     omx = mx;
     omy = my;
@@ -360,7 +357,7 @@ static void key_func(unsigned char key, int x, int y) {
                 dsim = 0;
                 clear_vector_data();
                 set_scene(key - '0', pVector, fVector, cVector, oVector, visualizeForces);
-                std::cout << "Switched to scene " << key << ": " << currentSceneName << "." << std::endl;
+                std::cout << "Switched to scene: " << currentSceneName << "." << std::endl;
             }
     }
 }
@@ -484,7 +481,9 @@ int main(int argc, char **argv) {
     printf("\t Quit by pressing the 'q' key\n");
     printf("\t Switch integration scheme by using 'e', 'm' and 'r'\n");
     printf("\t Toggle force visualization by pressing the 'f' key\n");
-    printf("\t Switch to a given scene using '1-9'\n");
+    printf("\t Switch to a given scene using '0-9'\n");
+    printf("\t Drag particles with a spring force using the left mouse button\n");
+    printf("\t Apply a blowing force using the right mouse button \n");
 
     dsim = 0;
     dump_frames = 0;

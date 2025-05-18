@@ -86,7 +86,7 @@ void set_scene(int scene, std::vector<Particle *> &pVector, std::vector<Force *>
 
     switch (scene) {
         case 1:
-            currentSceneName = "Pendulum";
+            currentSceneName = std::to_string(scene) + ". Pendulum";
 
             pVector.push_back(new Particle(center + offset, visualizeForces, 0));
             pVector.push_back(new Particle(center + offset + Vec2f(0.001, dist), visualizeForces, 1));
@@ -98,7 +98,7 @@ void set_scene(int scene, std::vector<Particle *> &pVector, std::vector<Force *>
             break;
 
         case 2:
-            currentSceneName = "Double spring";
+            currentSceneName = std::to_string(scene) + ". Double spring";
             pVector.push_back(new Particle(center + 0 * offset, visualizeForces, 0));
             pVector.push_back(new Particle(center + 1 * offset, visualizeForces, 1));
             pVector.push_back(new Particle(center + 2 * offset, visualizeForces, 2));
@@ -107,7 +107,7 @@ void set_scene(int scene, std::vector<Particle *> &pVector, std::vector<Force *>
             fVector.push_back(new SpringForce(pVector[1], pVector[2], 0.1, 1.0, 0.5));
             break;
         case 3: {
-            currentSceneName = "None vs. Quadratic Drag Force";
+            currentSceneName = std::to_string(scene) + ". None vs. Quadratic Drag Force";
 
             const double total_height = 0.5;
             const size_t particles = 3;
@@ -141,7 +141,7 @@ void set_scene(int scene, std::vector<Particle *> &pVector, std::vector<Force *>
 
         } break;
         case 4: {
-            currentSceneName = "Angular Springs";
+            currentSceneName = std::to_string(scene) + ". Angular Springs";
             constexpr double total_height = 0.8;
             constexpr size_t particles = 15;
             constexpr double rod_length = total_height / particles;
@@ -162,17 +162,17 @@ void set_scene(int scene, std::vector<Particle *> &pVector, std::vector<Force *>
             }
         } break;
         case 5:
-            currentSceneName = "Three-Body Problem";
+            currentSceneName = std::to_string(scene) + ". Three-Body Problem";
             three_body_problem_scene(pVector, fVector, cVector, visualizeForces);
             break;
         case 6:
-            currentSceneName = "Ground Collision";
+            currentSceneName = std::to_string(scene) + ". Ground Collision";
             pVector.push_back(new Particle(center, visualizeForces, 0));
             oVector.push_back(new Plane(Vec2f(0.0, -0.5), Vec2f(0.0, 1.0), pVector, 0.001));
             fVector.push_back(new LinearForce({pVector[0]}, Vec2f(0.00, -0.03)));
             break;
         case 7: {
-            currentSceneName = "Down-Hill Collision";
+            currentSceneName = std::to_string(scene) + ". Down-Hill Collision";
             Vec2f position = Vec2f(-0.75, 0.5);
             pVector.push_back(new Particle(position + offset, visualizeForces, 0));
             pVector.push_back(new Particle(position, visualizeForces, 1));
@@ -182,15 +182,26 @@ void set_scene(int scene, std::vector<Particle *> &pVector, std::vector<Force *>
         } break;
 		case 8:
 			{
-		        currentSceneName = "Cloth";
-				constructCloth(8, 40, 0.045, true, false, pVector, fVector, cVector, visualizeForces);
-                attachCloth(40, 0.045, pVector, fVector, cVector, visualizeForces);
+		        currentSceneName = std::to_string(scene) + ". Cloth";
+				constructCloth(Vec2f(0.0,0.0), 8, 40, 0.045,
+				    true, false, pVector, fVector, cVector, visualizeForces);
+                attachCloth(Vec2f(0.0,0.0), 8, 40, 0.045,
+                    pVector, fVector, cVector, visualizeForces);
 			}
             break;
         case 9: {
+            currentSceneName = std::to_string(scene) + ". Hairy head";
             hairy_head_scene(pVector, fVector, cVector, oVector, visualizeForces);
             break;
         }
+
+        case 0: {
+            currentSceneName = std::to_string(scene) + ". Cloth collision";
+            constructCloth(Vec2f(0.0,0.0), 20, 5, 0.045,
+                true, false, pVector, fVector, cVector, visualizeForces);
+            oVector.push_back(new Plane(Vec2f(0.9, 0.0), Vec2f(-1.0, 0.0),
+                                pVector, 0.02, 0.5));
+        } break;
 
         default:
             currentSceneName = "Default: Single Particle";
@@ -200,12 +211,14 @@ void set_scene(int scene, std::vector<Particle *> &pVector, std::vector<Force *>
 }
 
 
-void constructCloth(size_t rows, size_t cols, double spacing, bool diagonal, bool useRods, std::vector<Particle *> &pVector,
+void constructCloth(Vec2f origin, size_t rows, size_t cols, double spacing, bool diagonal, bool useRods, std::vector<Particle *> &pVector,
                      std::vector<Force *> &fVector, std::vector<Constraint *> &cVector, bool visualizeForces) {
-    const double offset = 0.5 * cols * spacing;
+    const Vec2f offset (-0.5 * cols * spacing, 0.5 * rows * spacing);
+
     for (size_t i = 0; i < rows; i++) { // Creating particle grid
         for (size_t j = 0; j < cols; j++) {
-            pVector.push_back(new Particle(Vec2f(j * spacing - offset, -(i * spacing)), visualizeForces, pVector.size()));
+            Vec2f pos = origin + Vec2f(j * spacing, -(i * spacing)) + offset;
+            pVector.push_back(new Particle(pos, visualizeForces, pVector.size()));
         }
     }
 
@@ -253,9 +266,10 @@ void constructCloth(size_t rows, size_t cols, double spacing, bool diagonal, boo
 }
 
 
-void attachCloth(size_t cols, double spacing, std::vector<Particle *> &pVector, std::vector<Force *> &fVector,
+void attachCloth(Vec2f origin, size_t rows, size_t cols, double spacing, std::vector<Particle *> &pVector, std::vector<Force *> &fVector,
                  std::vector<Constraint *> &cVector, bool visualizeForces){
-    const double centerOffset = 0.5 * cols * spacing;
+    //const double centerOffset = 0.5 * cols * spacing;
+    const Vec2f offset (-0.5 * cols * spacing, 0.5 * rows * spacing);
     const double supportHeight = 2 * spacing;  // Height relative to cloth
     const size_t nrSupport = 5; // Amount of constraint support particel
     const size_t interPos =  cols / nrSupport; // For dividing the supports uniformly
@@ -269,7 +283,7 @@ void attachCloth(size_t cols, double spacing, std::vector<Particle *> &pVector, 
         idx1 = std::min(idx1, pVector.size() - 1);
         idx2 = std::min(idx2, pVector.size() - 1);
 
-        Vec2f pos((idx1 + idx2) * 0.5 * spacing - centerOffset, supportHeight);
+        Vec2f pos = origin + Vec2f((idx1 + idx2) * 0.5 * spacing, supportHeight) + offset;
 
         // std::cout << pVector[idx1]->m_ConstructPos << " " << pos <<  " " << euclidean << std::endl;
         // Connecting to bottom two particles
