@@ -27,6 +27,7 @@
 #include <stdlib.h>
 #include <vector>
 #include <cstring>
+#include <LinearForce.h>
 
 #if defined(__APPLE__) && defined(__aarch64__)
 #include <GLUT/glut.h>
@@ -61,6 +62,7 @@ static std::vector<Force *> fVector;
 static std::vector<Constraint *> cVector;
 static std::vector<CollideableObject *> oVector;
 static Force *mouse_interact_force;
+static LinearForce *mouse_blow_force;
 static std::unique_ptr<Particle> mouse_particle = std::make_unique<Particle>(Vec2f(mx, my), visualizeForces, 100);
 static std::unique_ptr<IntegrationScheme> integration_scheme = std::make_unique<RungeKuttaScheme>();
 extern std::string currentSceneName;
@@ -193,12 +195,21 @@ relates mouse movements to particle toy construction
 ----------------------------------------------------------------------
 */
 
+static Vec2f getAverageParticlePosition() {
+    Vec2f sum(0.0f, 0.0f);
+    for (auto* p : pVector) {
+        sum += p->m_Position;
+    }
+    return sum / static_cast<float>(pVector.size());
+}
 
-static void add_interact_force() {
-    if (!mouse_interact_force) {
-        mouse_particle->m_Position[0] = mx / (float) win_x * 2.0 - 1.0;
-        mouse_particle->m_Position[1] = (win_y - my) / (float) win_y * 2.0 - 1.0;
+static void add_interact_force(int button) {
+    float x_scaled = mx / (float) win_x * 2.0 - 1.0;
+    float y_scaled = (win_y - my) / (float) win_y * 2.0 - 1.0;
 
+    if (button == GLUT_LEFT_BUTTON && !mouse_interact_force) {
+        mouse_particle->m_Position[0] = x_scaled;
+        mouse_particle->m_Position[1] = y_scaled;
         for (auto p: pVector) {
             float dx = mouse_particle->m_Position[0] - p->m_Position[0];
             float dy = mouse_particle->m_Position[1] - p->m_Position[1];
@@ -208,6 +219,10 @@ static void add_interact_force() {
                 break;
             }
         }
+    } else if (button == GLUT_RIGHT_BUTTON && !mouse_blow_force) {
+        // Only creation, updating done in handle_user_interaction()
+        mouse_blow_force = new LinearForce(pVector, Vec2f(0.0,0.0));
+        fVector.push_back(mouse_blow_force);
     }
 }
 
@@ -216,20 +231,29 @@ static void remove_interact_force() {
         fVector.erase(std::remove(fVector.begin(), fVector.end(), mouse_interact_force), fVector.end());
         delete mouse_interact_force;
         mouse_interact_force = nullptr;
+    } else if (mouse_blow_force) {
+        fVector.erase(std::remove(fVector.begin(), fVector.end(), mouse_blow_force), fVector.end());
+        delete mouse_blow_force;
+        mouse_blow_force = nullptr;
     }
 }
 
 static void handle_user_interaction() {
+    // To scale from pixel coordinate to [-1, 1].
+    float x_scaled = mx / (float) win_x * 2.0 - 1.0;
+    float y_scaled = (win_y - my) / (float) win_y * 2.0 - 1.0;
+    // Particle movement
     if (mouse_state[GLUT_LEFT_BUTTON] == GLUT_DOWN) {
-        // To scale from pixel coordinate to [-1, 1].
-        float i = mx / (float) win_x * 2.0 - 1.0;
-        float j = (win_y - my) / (float) win_y * 2.0 - 1.0;
-
-        // Update postition of (the imaginary) mouse_particle while holding down left mouse
-        mouse_particle->m_Position[0] = i;
-        mouse_particle->m_Position[1] = j;
+        // Update position of (the imaginary) mouse_particle while holding down left mouse
+        mouse_particle->m_Position[0] = x_scaled;
+        mouse_particle->m_Position[1] = y_scaled;
+    } else if (mouse_state[GLUT_RIGHT_BUTTON] == GLUT_DOWN && mouse_blow_force) {
+        Vec2f dir = getAverageParticlePosition() - Vec2f(x_scaled, y_scaled);
+        const float strength = std::min(0.05f / norm(dir), 0.6f);
+        // std::cout <<"Strength: "<< strength << std::endl;
+        unitize(dir);
+        mouse_blow_force->setForce(dir * strength);
     }
-
     omx = mx;
     omy = my;
 }
@@ -353,11 +377,12 @@ static void mouse_func(int button, int state, int x, int y) {
         hmy = y;
     }
 
-    if (state == GLUT_DOWN && button == 0) {
-        add_interact_force();
-    } else if (state == GLUT_UP && button == 0) {
+    if (state == GLUT_DOWN) {
+        add_interact_force(button);
+    } else if (state == GLUT_UP) {
         remove_interact_force();
     }
+
 }
 
 static void motion_func(int x, int y) {

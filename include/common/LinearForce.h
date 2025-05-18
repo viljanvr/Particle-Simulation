@@ -9,6 +9,7 @@ public:
     LinearForce(std::vector<Particle*> particles, Vec2f G);
     void applyForce() override;
     void draw() override;
+    void setForce(Vec2f newForce);
     std::vector<JacobianEntry> getJx() override;
     std::vector<JacobianEntry> getJv() override;
 

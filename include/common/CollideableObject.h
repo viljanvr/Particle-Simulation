@@ -3,6 +3,7 @@
 #include "DrawableObject.h"
 
 #include <Particle.h>
+#include <vector>
 
 struct Collision {
     Particle *p;

@@ -16,5 +16,8 @@ std::vector<Force::JacobianEntry> LinearForce::getJv() {
     return {};
 }
 
+void LinearForce::setForce(Vec2f newForce) {
+    m_G = newForce;
+}
 
 void LinearForce::draw() {}
