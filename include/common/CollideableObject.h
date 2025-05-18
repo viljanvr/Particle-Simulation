@@ -16,7 +16,7 @@ class CollideableObject : public DrawableObject {
 public:
     explicit CollideableObject(std::vector<Particle *> particles, double bounce);
     virtual ~CollideableObject() = default;
-    Collision get_earliest_collision() const;
+    [[nodiscard]] std::vector<Collision> get_earliest_collisions() const;
     virtual bool is_particle_colliding(Particle *p) const = 0;
     virtual Collision compute_collision_details(Particle *p) const = 0;
     void backtrack_particles(double backtracking_factor) const;

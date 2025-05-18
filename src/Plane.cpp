@@ -29,13 +29,12 @@ Collision Plane::compute_collision_details(Particle *p) const {
     }
 
     Vec2f plane_dir = Vec2f(-m_Normal[1], m_Normal[0]);
-    float t = cross_product(m_Origin + m_Epsilon * m_Normal - p->m_PreviousPosition, plane_dir) /
+    double t = cross_product(m_Origin - p->m_PreviousPosition, plane_dir) /
               cross_product(p->m_Position - p->m_PreviousPosition, plane_dir);
-    if (t < 0) {
-        t = 0.0;
-    }
 
-    return Collision {p, m_Normal, 1.0 - t};
+    double backtracking = (1.0 - t);
+
+    return Collision {p, m_Normal, backtracking};
 }
 
 

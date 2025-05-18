@@ -131,26 +131,36 @@ SparseMatrix getForceJacobianV(const std::vector<Particle *> &pVector, const std
 
 void handle_collisions(const std::vector<CollideableObject *> &oVector) {
     // We want to backtrack everything to the earliest collision;
-    Collision earliest_collision {nullptr, {0, 0}, 0.0};
-    CollideableObject *earliest_collision_object = nullptr;
+    std::vector<Collision> earliest_collisions;
+    std::vector<CollideableObject *> collision_objects;
     for (auto o: oVector) {
-        Collision collision = o->get_earliest_collision();
-        if (collision.p == nullptr) {
+        std::vector<Collision> collisions = o->get_earliest_collisions();
+        if (collisions.empty()) {
             continue;
         }
-        if (earliest_collision_object == nullptr || earliest_collision.backtracking_factor < collision.backtracking_factor) {
-            earliest_collision = collision;
-            earliest_collision_object = o;
+        double backtracking = collisions.back().backtracking_factor;
+        if (!earliest_collisions.empty() && earliest_collisions.back().backtracking_factor > backtracking) {
+            continue;
+        }
+        if (!earliest_collisions.empty() && earliest_collisions.back().backtracking_factor < backtracking) {
+            earliest_collisions.clear();
+            collision_objects.clear();
+        }
+        for (auto collision : collisions) {
+            earliest_collisions.push_back(collision);
+            collision_objects.push_back(o);
         }
     }
-    if (earliest_collision_object != nullptr) {
+    if (!earliest_collisions.empty()) {
         for (auto o : oVector) {
-            o->backtrack_particles(earliest_collision.backtracking_factor);
+            o->backtrack_particles(earliest_collisions.back().backtracking_factor);
         }
+    }
 
-        // Only for the earliest collision, we want to update the particle right now, since backtracking might have
-        // undone some collisions.
-        earliest_collision_object->bounce_single_particle(earliest_collision);
+    for (size_t i = 0; i < earliest_collisions.size(); ++i) {
+        Collision collision = earliest_collisions[i];
+        CollideableObject *o = collision_objects[i];
+        o->bounce_single_particle(collision);
     }
 }
 
