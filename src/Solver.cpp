@@ -130,9 +130,11 @@ SparseMatrix getForceJacobianV(const std::vector<Particle *> &pVector, const std
 }
 
 void handle_collisions(const std::vector<CollideableObject *> &oVector) {
-    // We want to backtrack everything to the earliest collision;
+    // We want to backtrack everything to the earliest collision if there are multiple earliest collisions,
+    // we handle all of them.
     std::vector<Collision> earliest_collisions;
     std::vector<CollideableObject *> collision_objects;
+    // Get earliest collisions among all colliders.
     for (auto o: oVector) {
         std::vector<Collision> collisions = o->get_earliest_collisions();
         if (collisions.empty()) {
@@ -151,11 +153,14 @@ void handle_collisions(const std::vector<CollideableObject *> &oVector) {
             collision_objects.push_back(o);
         }
     }
+
+    // Backtrack back to earliest collisions.
     if (!earliest_collisions.empty()) {
         for (auto o : oVector) {
             o->backtrack_particles(earliest_collisions.back().backtracking_factor);
         }
     }
+
 
     for (size_t i = 0; i < earliest_collisions.size(); ++i) {
         Collision collision = earliest_collisions[i];

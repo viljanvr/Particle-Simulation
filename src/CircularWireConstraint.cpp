@@ -20,7 +20,7 @@ std::vector<Constraint::JacobianEntry> CircularWireConstraint::getJacobianDeriv(
 
 static void draw_circle(const Vec2f &vect, float radius) {
     glBegin(GL_LINE_LOOP);
-    glColor3f(0.0, 1.0, 0.0);
+    glColor3f(0.0, 0.1, 0.0);
     for (int i = 0; i < 360; i = i + 18) {
         float degInRad = i * PI / 180;
         glVertex2f(vect[0] + cos(degInRad) * radius, vect[1] + sin(degInRad) * radius);
@@ -41,4 +41,12 @@ double CircularWireConstraint::getCDeriv() {
 CircularWireConstraint::CircularWireConstraint(Particle *p, const Vec2f &center, const double radius, size_t index) :
     Constraint(index), m_p(p), m_center(center), m_radius(radius) {}
 
-void CircularWireConstraint::draw() { draw_circle(m_center, m_radius); }
+void CircularWireConstraint::draw() {
+    glBegin(GL_LINES);
+    glColor3f(0.8, 0.7, 0.6);
+    glVertex2f(m_p->m_Position[0], m_p->m_Position[1]);
+    glColor3f(0.8, 0.7, 0.6);
+    glVertex2f(m_center[0], m_center[1]);
+    glEnd();
+    draw_circle(m_center, m_radius);
+}

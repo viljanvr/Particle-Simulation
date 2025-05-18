@@ -1,6 +1,7 @@
 #include "ScenePresets.h"
 
 #include <AngularSpringForce.h>
+#include <CircularCollisionObject.h>
 #include <LinearDragForce.h>
 #include <LinearForce.h>
 #include <QuadraticDragForce.h>
@@ -23,6 +24,50 @@ void three_body_problem_scene(std::vector<Particle *> &pVector, std::vector<Forc
     pVector.push_back(new Particle(Vec2f(-0.4, 0.0), visualizeForces, pVector.size(), 5.0, Vec2f(0.0, 0.15)));
 
     fVector.push_back(new GravitationalForce(pVector, 0.001));
+}
+
+void hairy_head_scene(std::vector<Particle *> &pVector, std::vector<Force *> &fVector,
+    std::vector<Constraint *> &cVector, std::vector<CollideableObject *> &oVector, bool visualizeForces) {
+    double head_radius = 0.3;
+    size_t hair_count = 10;
+    // which percentage of the head circumference is used to attach hairs?
+    double sector = 0.3;
+    double hair_segment_length = 0.12;
+    size_t hair_segment_count = 7;
+    double angle_between_hair_segments = 110;
+
+    double first_hair_angle = - sector * PI;
+    double last_hair_angle = sector * PI;
+    double angle_between_hairs = (last_hair_angle - first_hair_angle) / (hair_count - 1.0);
+
+    for (size_t i = 0; i < hair_count; i++) {
+        double angle = first_hair_angle + i * angle_between_hairs;
+        Vec2f head_delta = Vec2f(sin(angle) * head_radius, cos(angle) * head_radius);
+        Vec2f segment_delta = Vec2f(sin(angle) * hair_segment_length, cos(angle) * hair_segment_length);
+
+        for (size_t j = 0; j < hair_segment_count; j++) {
+            pVector.push_back(new Particle(head_delta + (j + 1) * segment_delta, visualizeForces, pVector.size()));
+            if (j == 0) {
+                cVector.push_back(new CircularWireConstraint(pVector.back(), head_delta, hair_segment_length, cVector.size()));
+            } else {
+                //fVector.push_back(new SpringForce(pVector.back(), pVector[pVector.size() - 2], hair_segment_length, 100.0, 10.0));
+                cVector.push_back(new RodConstraint(pVector.back(), pVector[pVector.size() - 2], hair_segment_length, cVector.size()));
+                if (j >= 3) {
+                    double segment_angle = angle_between_hair_segments;
+                    if (j % 2 == 0) {
+                        segment_angle = 360 - segment_angle;
+                    }
+                    fVector.push_back(new AngularSpringForce(
+                        pVector[pVector.size() - 3],
+                        pVector[pVector.size() - 2],
+                        pVector[pVector.size() - 1], segment_angle, 0.1, 0.05));
+                }
+            }
+        }
+    }
+
+    fVector.push_back(new LinearForce(pVector, {0, -0.008}));
+    oVector.push_back(new CircularCollisionObject({0, 0}, head_radius, pVector, 0.02, 0.4));
 }
 
 void set_scene(int scene, std::vector<Particle *> &pVector, std::vector<Force *> &fVector,
@@ -123,6 +168,10 @@ void set_scene(int scene, std::vector<Particle *> &pVector, std::vector<Force *>
                 attachCloth(40, 0.045, pVector, fVector, cVector, visualizeForces);
 			}
             break;
+        case 9: {
+            hairy_head_scene(pVector, fVector, cVector, oVector, visualizeForces);
+            break;
+        }
 
         default:
             pVector.push_back(new Particle(center, visualizeForces, 0));
