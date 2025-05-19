@@ -77,7 +77,7 @@ void hairy_head_scene(std::vector<Particle *> &pVector, std::vector<Force *> &fV
     }
 
     fVector.push_back(new LinearForce(pVector, {0, -0.008}));
-    oVector.push_back(new CircularCollisionObject({0, 0}, head_radius, pVector, 0.001, 0.4));
+    oVector.push_back(new CircularCollisionObject({0, 0}, head_radius, pVector, 0.03, 0.4));
 }
 
 void set_scene(int scene, std::vector<Particle *> &pVector, std::vector<Force *> &fVector,
@@ -196,7 +196,7 @@ void set_scene(int scene, std::vector<Particle *> &pVector, std::vector<Force *>
         case 0: {
             currentSceneName = std::to_string(scene) + ". Cloth collision";
             constructCloth(Vec2f(0.0, 0.0), 20, 5, 0.045, true, false, pVector, fVector, cVector, visualizeForces);
-            oVector.push_back(new Plane(Vec2f(0.9, 0.0), Vec2f(-1.0, 0.0), pVector, 0.01, 0.5));
+            oVector.push_back(new Plane(Vec2f(0.9, 0.0), Vec2f(-1.0, 0.0), pVector, 0.04, 0.5));
         } break;
 
         default:
@@ -316,4 +316,3 @@ void drawText(const char *text, float x, float y) {
     glVertex2f(0.0, 1.0);
     glEnd();
 }
-
