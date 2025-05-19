@@ -8,27 +8,24 @@
 #include <RungeKuttaScheme.h>
 
 
-#include "CircularWireConstraint.h"
 #include "Constraint.h"
 #include "Force.h"
 #include "Particle.h"
-#include "Plane.h"
-#include "RodConstraint.h"
 #include "ScenePresets.h"
 #include "SpringForce.h"
 #include "gfx/vec2.h"
 #include "imageio.h"
 
-#include <algorithm>
 #include <BlowForce.h>
+#include <LinearForce.h>
+#include <algorithm>
 #include <cstddef>
+#include <cstring>
 #include <iostream>
 #include <memory>
 #include <stdio.h>
 #include <stdlib.h>
 #include <vector>
-#include <cstring>
-#include <LinearForce.h>
 
 #if defined(__APPLE__) && defined(__aarch64__)
 #include <GLUT/glut.h>
@@ -169,23 +166,22 @@ static void draw_collidable_objects() {
     }
 }
 
-static int getBitmapStringWidth(const std::string& text, void* font) {
+static int getBitmapStringWidth(const std::string &text, void *font) {
     int width = 0;
-    for (char c : text) {
+    for (char c: text) {
         width += glutBitmapWidth(font, c);
     }
     return width;
 }
 
 static void draw_title() {
-    void* font = GLUT_BITMAP_HELVETICA_18;
+    void *font = GLUT_BITMAP_HELVETICA_18;
     // Center depends on string length
-    float centered_x = - static_cast<float>(getBitmapStringWidth(currentSceneName, font))
-                            / static_cast<float>(win_x);
+    float centered_x = -static_cast<float>(getBitmapStringWidth(currentSceneName, font)) / static_cast<float>(win_x);
 
     glColor3f(1.0, 1.0, 1.0);
     glRasterPos2f(centered_x, 0.9);
-    for (char c : currentSceneName) {
+    for (char c: currentSceneName) {
         glutBitmapCharacter(font, c);
     }
 }
@@ -222,7 +218,7 @@ static void add_interact_force(int button) {
         }
     } else if (button == GLUT_RIGHT_BUTTON && !mouse_blow_force) {
         // Only creation, updating done in handle_user_interaction()
-        mouse_blow_force = new BlowForce(pVector, Vec2f(0.0f,0.0f), 0.05f, 0.6f);
+        mouse_blow_force = new BlowForce(pVector, Vec2f(0.0f, 0.0f), 0.05f, 0.6f);
         fVector.push_back(mouse_blow_force);
     }
 }
@@ -255,39 +251,6 @@ static void handle_user_interaction() {
     omy = my;
 }
 
-// NOTE: I think this function is a bit unintuitive, so have created another solution
-
-// static void get_from_UI() {
-//     int i, j;
-//     // int size, flag;
-//     int hi, hj;
-//     // float x, y;
-//     if (!mouse_down[0] && !mouse_down[2] && !mouse_release[0] && !mouse_shiftclick[0] && !mouse_shiftclick[2])
-//         return;
-//
-//     i = (int) ((mx / (float) win_x) * N);
-//     j = (int) (((win_y - my) / (float) win_y) * N);
-//
-//
-//     if (i < 1 || i > N || j < 1 || j > N)
-//         return;
-//
-//     if (mouse_down[0]) {
-//     }
-//
-//     if (mouse_down[2]) {
-//     }
-//
-//     hi = (int) ((hmx / (float) win_x) * N);
-//     hj = (int) (((win_y - hmy) / (float) win_y) * N);
-//
-//     if (mouse_release[0]) {
-//     }
-//
-//     omx = mx;
-//     omy = my;
-// }
-
 static void remap_GUI() {
     int ii, size = pVector.size();
     for (ii = 0; ii < size; ii++) {
@@ -295,8 +258,6 @@ static void remap_GUI() {
         pVector[ii]->m_Position[1] = pVector[ii]->m_ConstructPos[1];
         pVector[ii]->reset();
     }
-    // For testing
-    // pVector[0]->m_Velocity = Vec2f(-0.1, 0.0);
 }
 
 /*
@@ -379,7 +340,6 @@ static void mouse_func(int button, int state, int x, int y) {
     } else if (state == GLUT_UP) {
         remove_interact_force();
     }
-
 }
 
 static void motion_func(int x, int y) {
@@ -400,13 +360,11 @@ static void idle_func(void) {
     if (dsim) {
         simulation_step(pVector, fVector, cVector, oVector, dt, *integration_scheme);
     } else {
-        // get_from_UI();
         remap_GUI();
     }
     glutSetWindow(win_id);
     glutPostRedisplay();
 }
-
 
 
 static void display_func(void) {
