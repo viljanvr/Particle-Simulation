@@ -73,7 +73,6 @@ void apply_constraint_forces_to_particles(std::vector<Particle *> pVector, std::
         right_hand_side[i] = (-jDerivQDeriv[i] - jwq[i]) - cVector[i]->getC() * KS - cVector[i]->getCDeriv() * KD;
     }
 
-
     int steps = 0;
     std::vector<double> lambda(cVector.size());
     ConjGrad(cVector.size(), &jwj, lambda.data(), right_hand_side.data(), 0.000000001, &steps);
@@ -104,8 +103,8 @@ void compute_total_forces(const std::vector<Particle *> &pVector, const std::vec
 SparseMatrix getForceJacobianX(const std::vector<Particle *> &pVector, const std::vector<Force *> &fVector) {
     size_t n = pVector.size() * DIMS;
     SparseMatrix j(n, n);
-    for (auto force : fVector) {
-        for (auto jacobianEntry : force->getJx()) {
+    for (auto force: fVector) {
+        for (auto jacobianEntry: force->getJx()) {
             j.addToCell(jacobianEntry.p1->m_index * 2, jacobianEntry.p2->m_index * 2, jacobianEntry.xx);
             j.addToCell(jacobianEntry.p1->m_index * 2, jacobianEntry.p2->m_index * 2 + 1, jacobianEntry.xy);
             j.addToCell(jacobianEntry.p1->m_index * 2 + 1, jacobianEntry.p2->m_index * 2, jacobianEntry.yx);
@@ -118,8 +117,8 @@ SparseMatrix getForceJacobianX(const std::vector<Particle *> &pVector, const std
 SparseMatrix getForceJacobianV(const std::vector<Particle *> &pVector, const std::vector<Force *> &fVector) {
     size_t n = pVector.size() * DIMS;
     SparseMatrix j(n, n);
-    for (auto force : fVector) {
-        for (auto jacobianEntry : force->getJv()) {
+    for (auto force: fVector) {
+        for (auto jacobianEntry: force->getJv()) {
             j.addToCell(jacobianEntry.p1->m_index * 2, jacobianEntry.p2->m_index * 2, jacobianEntry.xx);
             j.addToCell(jacobianEntry.p1->m_index * 2, jacobianEntry.p2->m_index * 2 + 1, jacobianEntry.xy);
             j.addToCell(jacobianEntry.p1->m_index * 2 + 1, jacobianEntry.p2->m_index * 2, jacobianEntry.yx);
@@ -148,7 +147,7 @@ void handle_collisions(const std::vector<CollideableObject *> &oVector) {
             earliest_collisions.clear();
             collision_objects.clear();
         }
-        for (auto collision : collisions) {
+        for (auto collision: collisions) {
             earliest_collisions.push_back(collision);
             collision_objects.push_back(o);
         }
@@ -156,7 +155,7 @@ void handle_collisions(const std::vector<CollideableObject *> &oVector) {
 
     // Backtrack back to earliest collisions.
     if (!earliest_collisions.empty()) {
-        for (auto o : oVector) {
+        for (auto o: oVector) {
             o->backtrack_particles(earliest_collisions.back().backtracking_factor);
         }
     }
@@ -178,11 +177,9 @@ void simulation_step(const std::vector<Particle *> &pVector, const std::vector<F
         p->m_PreviousVelocity = p->m_Velocity;
     }
     integration_scheme.updateParticlesBasedOnForce(
-            pVector,
-            [&]() { compute_total_forces(pVector, fVector, cVector); },
+            pVector, [&]() { compute_total_forces(pVector, fVector, cVector); },
             [&]() { return getForceJacobianX(pVector, fVector); },
-            [&]() { return getForceJacobianV(pVector, fVector); },
-            dt);
+            [&]() { return getForceJacobianV(pVector, fVector); }, dt);
 
     handle_collisions(oVector);
 }

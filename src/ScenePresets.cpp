@@ -5,17 +5,17 @@
 #include <LinearDragForce.h>
 #include <LinearForce.h>
 #include <QuadraticDragForce.h>
-#include <cstring>
 #include <cmath>
+#include <cstring>
 
-#include "Plane.h"
-#include "RodConstraintVar.h"
 #include "CircularWireConstraint.h"
+#include "FixedEndpointSpringForce.h"
 #include "GravitationalForce.h"
+#include "Plane.h"
 #include "RodConstraint.h"
+#include "RodConstraintVar.h"
 #include "SpringForce.h"
 #include "gfx/vec2.h"
-#include "FixedEndpointSpringForce.h"
 
 #if defined(__APPLE__) && defined(__aarch64__)
 #include <GLUT/glut.h>
@@ -35,7 +35,8 @@ void three_body_problem_scene(std::vector<Particle *> &pVector, std::vector<Forc
 }
 
 void hairy_head_scene(std::vector<Particle *> &pVector, std::vector<Force *> &fVector,
-    std::vector<Constraint *> &cVector, std::vector<CollideableObject *> &oVector, bool visualizeForces) {
+                      std::vector<Constraint *> &cVector, std::vector<CollideableObject *> &oVector,
+                      bool visualizeForces) {
     double head_radius = 0.3;
     size_t hair_count = 10;
     // which percentage of the head circumference is used to attach hairs?
@@ -44,7 +45,7 @@ void hairy_head_scene(std::vector<Particle *> &pVector, std::vector<Force *> &fV
     size_t hair_segment_count = 7;
     double angle_between_hair_segments = 110;
 
-    double first_hair_angle = - sector * PI;
+    double first_hair_angle = -sector * PI;
     double last_hair_angle = sector * PI;
     double angle_between_hairs = (last_hair_angle - first_hair_angle) / (hair_count - 1.0);
 
@@ -56,26 +57,27 @@ void hairy_head_scene(std::vector<Particle *> &pVector, std::vector<Force *> &fV
         for (size_t j = 0; j < hair_segment_count; j++) {
             pVector.push_back(new Particle(head_delta + (j + 1) * segment_delta, visualizeForces, pVector.size()));
             if (j == 0) {
-                cVector.push_back(new CircularWireConstraint(pVector.back(), head_delta, hair_segment_length, cVector.size()));
+                cVector.push_back(
+                        new CircularWireConstraint(pVector.back(), head_delta, hair_segment_length, cVector.size()));
             } else {
-                //fVector.push_back(new SpringForce(pVector.back(), pVector[pVector.size() - 2], hair_segment_length, 100.0, 10.0));
-                cVector.push_back(new RodConstraint(pVector.back(), pVector[pVector.size() - 2], hair_segment_length, cVector.size()));
+                // fVector.push_back(new SpringForce(pVector.back(), pVector[pVector.size() - 2], hair_segment_length,
+                // 100.0, 10.0));
+                cVector.push_back(new RodConstraint(pVector.back(), pVector[pVector.size() - 2], hair_segment_length,
+                                                    cVector.size()));
                 if (j >= 3) {
                     double segment_angle = angle_between_hair_segments;
                     if (j % 2 == 0) {
                         segment_angle = 360 - segment_angle;
                     }
-                    fVector.push_back(new AngularSpringForce(
-                        pVector[pVector.size() - 3],
-                        pVector[pVector.size() - 2],
-                        pVector[pVector.size() - 1], segment_angle, 0.1, 0.05));
+                    fVector.push_back(new AngularSpringForce(pVector[pVector.size() - 3], pVector[pVector.size() - 2],
+                                                             pVector[pVector.size() - 1], segment_angle, 0.1, 0.05));
                 }
             }
         }
     }
 
     fVector.push_back(new LinearForce(pVector, {0, -0.008}));
-    oVector.push_back(new CircularCollisionObject({0, 0}, head_radius, pVector, 0.02, 0.4));
+    oVector.push_back(new CircularCollisionObject({0, 0}, head_radius, pVector, 0.001, 0.4));
 }
 
 void set_scene(int scene, std::vector<Particle *> &pVector, std::vector<Force *> &fVector,
@@ -145,11 +147,11 @@ void set_scene(int scene, std::vector<Particle *> &pVector, std::vector<Force *>
             constexpr double total_height = 0.8;
             constexpr size_t particles = 15;
             constexpr double rod_length = total_height / particles;
-            Vec2f offset (0.0, -0.3);
+            Vec2f offset(0.0, -0.3);
 
             for (size_t i = 0; i < particles; i++) {
-                pVector.push_back(
-                        new Particle(center + (i + 1) * Vec2f(0, rod_length) + offset, visualizeForces, pVector.size()));
+                pVector.push_back(new Particle(center + (i + 1) * Vec2f(0, rod_length) + offset, visualizeForces,
+                                               pVector.size()));
             }
 
             for (size_t i = 2; i < particles; i++) {
@@ -168,7 +170,7 @@ void set_scene(int scene, std::vector<Particle *> &pVector, std::vector<Force *>
         case 6:
             currentSceneName = std::to_string(scene) + ". Ground Collision";
             pVector.push_back(new Particle(center, visualizeForces, 0));
-            oVector.push_back(new Plane(Vec2f(0.0, -0.5), Vec2f(0.0, 1.0), pVector, 0.001));
+            oVector.push_back(new Plane(Vec2f(0.0, -0.5), Vec2f(0.0, 1.0), pVector));
             fVector.push_back(new LinearForce({pVector[0]}, Vec2f(0.00, -0.03)));
             break;
         case 7: {
@@ -177,18 +179,14 @@ void set_scene(int scene, std::vector<Particle *> &pVector, std::vector<Force *>
             pVector.push_back(new Particle(position + offset, visualizeForces, 0));
             pVector.push_back(new Particle(position, visualizeForces, 1));
             pVector.push_back(new Particle(position - offset, visualizeForces, 2));
-            oVector.push_back(new Plane(Vec2f(0.0, -0.5), Vec2f(0.5, 1.0), pVector, 0.02, 0.5));
+            oVector.push_back(new Plane(Vec2f(0.0, -0.5), Vec2f(0.5, 1.0), pVector, 0.001, 0.7));
             fVector.push_back(new LinearForce({pVector[0], pVector[1], pVector[2]}, Vec2f(0.00, -0.03)));
         } break;
-		case 8:
-			{
-		        currentSceneName = std::to_string(scene) + ". Cloth";
-				constructCloth(Vec2f(0.0,0.0), 8, 40, 0.045,
-				    true, false, pVector, fVector, cVector, visualizeForces);
-                attachCloth(Vec2f(0.0,0.0), 8, 40, 0.045,
-                    pVector, fVector, cVector, visualizeForces);
-			}
-            break;
+        case 8: {
+            currentSceneName = std::to_string(scene) + ". Cloth";
+            constructCloth(Vec2f(0.0, 0.0), 8, 40, 0.045, true, false, pVector, fVector, cVector, visualizeForces);
+            attachCloth(Vec2f(0.0, 0.0), 8, 40, 0.045, pVector, fVector, cVector, visualizeForces);
+        } break;
         case 9: {
             currentSceneName = std::to_string(scene) + ". Hairy head";
             hairy_head_scene(pVector, fVector, cVector, oVector, visualizeForces);
@@ -197,10 +195,8 @@ void set_scene(int scene, std::vector<Particle *> &pVector, std::vector<Force *>
 
         case 0: {
             currentSceneName = std::to_string(scene) + ". Cloth collision";
-            constructCloth(Vec2f(0.0,0.0), 20, 5, 0.045,
-                true, false, pVector, fVector, cVector, visualizeForces);
-            oVector.push_back(new Plane(Vec2f(0.9, 0.0), Vec2f(-1.0, 0.0),
-                                pVector, 0.02, 0.5));
+            constructCloth(Vec2f(0.0, 0.0), 20, 5, 0.045, true, false, pVector, fVector, cVector, visualizeForces);
+            oVector.push_back(new Plane(Vec2f(0.9, 0.0), Vec2f(-1.0, 0.0), pVector, 0.01, 0.5));
         } break;
 
         default:
@@ -211,9 +207,10 @@ void set_scene(int scene, std::vector<Particle *> &pVector, std::vector<Force *>
 }
 
 
-void constructCloth(Vec2f origin, size_t rows, size_t cols, double spacing, bool diagonal, bool useRods, std::vector<Particle *> &pVector,
-                     std::vector<Force *> &fVector, std::vector<Constraint *> &cVector, bool visualizeForces) {
-    const Vec2f offset (-0.5 * cols * spacing, 0.5 * rows * spacing);
+void constructCloth(Vec2f origin, size_t rows, size_t cols, double spacing, bool diagonal, bool useRods,
+                    std::vector<Particle *> &pVector, std::vector<Force *> &fVector, std::vector<Constraint *> &cVector,
+                    bool visualizeForces) {
+    const Vec2f offset(-0.5 * cols * spacing, 0.5 * rows * spacing);
 
     for (size_t i = 0; i < rows; i++) { // Creating particle grid
         for (size_t j = 0; j < cols; j++) {
@@ -224,7 +221,7 @@ void constructCloth(Vec2f origin, size_t rows, size_t cols, double spacing, bool
 
     size_t idx = 0;
     spacing += 0.001;
-    double diagonalDist = std::sqrt(spacing*spacing + spacing*spacing);
+    double diagonalDist = std::sqrt(spacing * spacing + spacing * spacing);
     double spring_stiffness = 8.0;
     double spring_damping = 0.5;
     double spring_stiffness_diagonal = 8.0;
@@ -235,47 +232,53 @@ void constructCloth(Vec2f origin, size_t rows, size_t cols, double spacing, bool
             idx = i * cols + j;
             if (j != cols - 1) {
                 if (useRods) {
-                	cVector.push_back(new RodConstraintVar(pVector[idx], pVector[idx + 1], spacing, cVector.size()));
+                    cVector.push_back(new RodConstraintVar(pVector[idx], pVector[idx + 1], spacing, cVector.size()));
                 } else {
-                	fVector.push_back(new SpringForce(pVector[idx], pVector[idx + 1], spacing, spring_stiffness, spring_damping));
+                    fVector.push_back(
+                            new SpringForce(pVector[idx], pVector[idx + 1], spacing, spring_stiffness, spring_damping));
                 }
-                if (diagonal && i != rows - 1) {	// right-down diagonal
+                if (diagonal && i != rows - 1) { // right-down diagonal
                     if (useRods) {
-                    	cVector.push_back(new RodConstraintVar(pVector[idx], pVector[idx + cols + 1], diagonalDist, cVector.size()));
+                        cVector.push_back(new RodConstraintVar(pVector[idx], pVector[idx + cols + 1], diagonalDist,
+                                                               cVector.size()));
                     } else {
-                    	fVector.push_back(new SpringForce(pVector[idx], pVector[idx + cols + 1], diagonalDist, spring_stiffness_diagonal, spring_damping_diagonal));
+                        fVector.push_back(new SpringForce(pVector[idx], pVector[idx + cols + 1], diagonalDist,
+                                                          spring_stiffness_diagonal, spring_damping_diagonal));
                     }
-            	}
+                }
             }
-            if (i != rows - 1) {	// Vertical
-				if (useRods) {
-                	cVector.push_back(new RodConstraintVar(pVector[idx], pVector[idx + cols], spacing, cVector.size()));
+            if (i != rows - 1) { // Vertical
+                if (useRods) {
+                    cVector.push_back(new RodConstraintVar(pVector[idx], pVector[idx + cols], spacing, cVector.size()));
                 } else {
-                	fVector.push_back(new SpringForce(pVector[idx], pVector[idx + cols], spacing, spring_stiffness, spring_damping));
+                    fVector.push_back(new SpringForce(pVector[idx], pVector[idx + cols], spacing, spring_stiffness,
+                                                      spring_damping));
                 }
-				if (diagonal && j != 0) {	// left-down diagonal
+                if (diagonal && j != 0) { // left-down diagonal
                     if (useRods) {
-                    	cVector.push_back(new RodConstraintVar(pVector[idx], pVector[idx + cols - 1], diagonalDist, cVector.size()));
+                        cVector.push_back(new RodConstraintVar(pVector[idx], pVector[idx + cols - 1], diagonalDist,
+                                                               cVector.size()));
                     } else {
-                    	fVector.push_back(new SpringForce(pVector[idx], pVector[idx + cols - 1], diagonalDist, spring_stiffness_diagonal, spring_damping_diagonal));
+                        fVector.push_back(new SpringForce(pVector[idx], pVector[idx + cols - 1], diagonalDist,
+                                                          spring_stiffness_diagonal, spring_damping_diagonal));
                     }
-				}
+                }
             }
         }
     }
 }
 
 
-void attachCloth(Vec2f origin, size_t rows, size_t cols, double spacing, std::vector<Particle *> &pVector, std::vector<Force *> &fVector,
-                 std::vector<Constraint *> &cVector, bool visualizeForces){
-    //const double centerOffset = 0.5 * cols * spacing;
-    const Vec2f offset (-0.5 * cols * spacing, 0.5 * rows * spacing);
-    const double supportHeight = 2 * spacing;  // Height relative to cloth
+void attachCloth(Vec2f origin, size_t rows, size_t cols, double spacing, std::vector<Particle *> &pVector,
+                 std::vector<Force *> &fVector, std::vector<Constraint *> &cVector, bool visualizeForces) {
+    // const double centerOffset = 0.5 * cols * spacing;
+    const Vec2f offset(-0.5 * cols * spacing, 0.5 * rows * spacing);
+    const double supportHeight = 2 * spacing; // Height relative to cloth
     const size_t nrSupport = 5; // Amount of constraint support particel
-    const size_t interPos =  cols / nrSupport; // For dividing the supports uniformly
+    const size_t interPos = cols / nrSupport; // For dividing the supports uniformly
 
     for (size_t i = 0; i < nrSupport; i++) {
-        double center = (i + 0.5) * interPos;   // Center of this support particle
+        double center = (i + 0.5) * interPos; // Center of this support particle
         size_t idx1 = static_cast<size_t>(center - 0.5);
         size_t idx2 = static_cast<size_t>(center + 0.5);
 
@@ -291,12 +294,12 @@ void attachCloth(Vec2f origin, size_t rows, size_t cols, double spacing, std::ve
         fVector.push_back(new FixedEndpointSpringForce(pVector[idx2], pos, 0, 10.0, 0.1));
 
         fVector.push_back(new LinearForce(pVector, Vec2f(0.0, -0.01)));
-        //Wind
+        // Wind
         fVector.push_back(new QuadraticDragForce(pVector, 2.0));
     }
 }
 
-void drawText(const char* text, float x, float y) {
+void drawText(const char *text, float x, float y) {
     // glClear(GL_COLOR_BUFFER_BIT);
     // // glBegin(GL_LINES);
     // glColor3f(1.0f, 1.0f, 1.0f);
@@ -308,8 +311,9 @@ void drawText(const char* text, float x, float y) {
     // glutSwapBuffers();
     glBegin(GL_LINES);
     glColor3f(0.8, 0.7, 0.6);
-    glVertex2f(0.0,0.0);
+    glVertex2f(0.0, 0.0);
     glColor3f(0.8, 0.7, 0.6);
-    glVertex2f(0.0,1.0);
+    glVertex2f(0.0, 1.0);
     glEnd();
 }
+
