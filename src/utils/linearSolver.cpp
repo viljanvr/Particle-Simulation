@@ -1,7 +1,5 @@
 #include "linearSolver.h"
 
-#include <iostream>
-
 // vector helper functions
 
 void vecAddEqual(int n, double r[], double v[]) {

@@ -1,6 +1,7 @@
-INC_WINDOWS = include/windows
-INC_LINUX   = include/linux
-INC_COMMON  = include/common
+INC_WINDOWS = -Iinclude/windows
+INC_LINUX   = -Iinclude/linux
+INC_COMMON  = -Iinclude/common -Iinclude/common/collidables -Iinclude/common/constraints -Iinclude/common/forces -Iinclude/common/integration_schemes -Iinclude/common/utils
+
 
 UNAME_S := $(shell uname -s)
 UNAME_M := $(shell uname -m)
@@ -25,7 +26,7 @@ endif
 
 
 #CXXFLAGS = --std=c++17 -g -O2 -Wall -Wno-sign-compare -Wno-deprecated-declarations -I$(INCLUDE) -I$(INC_COMMON) -DHAVE_CONFIG_H -DDEBUG
-CXXFLAGS = --std=c++17 -g -O1 -Wall -Wno-sign-compare -Wno-deprecated-declarations -I$(INCLUDE) -I$(INC_COMMON) -DHAVE_CONFIG_H -DDEBUG
+CXXFLAGS = --std=c++17 -g -O1 -Wall -Wno-sign-compare -Wno-deprecated-declarations $(INCLUDE) $(INC_COMMON) -DHAVE_CONFIG_H -DDEBUG
 #CXXFLAGS += -fsanitize=address -fsanitize-address-use-after-scope -fno-omit-frame-pointer
 #CXX_EXTRA_FLAGS += -fsanitize=address -fsanitize-address-use-after-scope -fno-omit-frame-pointer
 CXX = g++
@@ -34,8 +35,8 @@ SRC_DIR = src
 OBJ_DIR = obj
 BIN_DIR = bin
 
-SOURCES = $(wildcard $(SRC_DIR)/*cpp)
-OBJECTS = $(patsubst %.cpp, $(OBJ_DIR)/%.o, $(notdir $(SOURCES)))
+SOURCES = $(shell find $(SRC_DIR) -name '*.cpp')
+OBJECTS := $(patsubst $(SRC_DIR)/%.cpp, $(OBJ_DIR)/%.o, $(SOURCES))
 EXECUTABLE = $(BIN_DIR)/project1.exe
 
 all: $(OBJ_DIR) $(BIN_DIR) $(EXECUTABLE)
@@ -47,15 +48,16 @@ $(BIN_DIR):
 	mkdir -v $@
 
 # Special rule to suppress warnings from imageio.cpp
-obj/imageio.o: $(SRC_DIR)/imageio.cpp
+obj/utils/imageio.o: $(SRC_DIR)/utils/imageio.cpp
 	$(CXX) -w $(CXXFLAGS) -o $@ -c $<
 
 obj/%.o: $(SRC_DIR)/%.cpp
+	@mkdir -p $(dir $@)
 	$(CXX) $(CXXFLAGS) -o $@ -c $<
 
 $(EXECUTABLE): $(OBJECTS)
 	$(CXX) -o $@ $^ $(CXX_EXTRA_FLAGS)
 
 clean:
-	@$(RM) $(OBJ_DIR)/*
+	@$(RM) -r $(OBJ_DIR)/*
 	@$(RM) $(BIN_DIR)/*exe

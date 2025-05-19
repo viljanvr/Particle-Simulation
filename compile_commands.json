@@ -1,7 +1,7 @@
 [
   {
     "directory": "/Users/viljanvanraaij/LocalProjects/scg_project1",
-    "command": "g++ --std=c++17 -g -O2 -Wall -Wno-sign-compare -Iinclude/linux -I/opt/homebrew/include -Iinclude/windows -Iinclude/common -DHAVE_CONFIG_H -DDEBUG -o obj/CircularWireConstraint.o -c src/CircularWireConstraint.cpp",
+    "command": "g++ --std=c++17 -g -O2 -Wall -Wno-sign-compare -Iinclude/linux -I/opt/homebrew/include -Iinclude/windows  -Iinclude/common -Iinclude/common/collidables -Iinclude/common/constraints -Iinclude/common/forces -Iinclude/common/integration_schemes -Iinclude/common/utils -DHAVE_CONFIG_H -DDEBUG -o obj/CircularWireConstraint.o -c src/CircularWireConstraint.cpp",
     "file": "src/ParticleToy.cpp"
   }
 ]
