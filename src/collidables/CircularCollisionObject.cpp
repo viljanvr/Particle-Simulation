@@ -9,8 +9,8 @@
 #endif
 
 CircularCollisionObject::CircularCollisionObject(const Vec2f &origin, double radius, std::vector<Particle *> particles,
-                                                 double epsilon, double bounce) :
-    CollideableObject(std::move(particles), bounce), m_Origin(origin), m_Radius(radius), m_Epsilon(epsilon) {}
+                                                 double epsilon, double bounce, double friction_factor, double slide_threshold) :
+    CollideableObject(std::move(particles), bounce, friction_factor, slide_threshold), m_Origin(origin), m_Radius(radius), m_Epsilon(epsilon) {}
 
 bool CircularCollisionObject::is_particle_colliding(Particle *p) const {
     return (norm(p->m_Position - m_Origin) - m_Radius < m_Epsilon && (p->m_Position - m_Origin) * p->m_Velocity < 0);

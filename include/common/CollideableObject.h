@@ -15,15 +15,19 @@ struct Collision {
 
 class CollideableObject : public DrawableObject {
 public:
-    explicit CollideableObject(std::vector<Particle *> particles, double bounce);
+    explicit CollideableObject(std::vector<Particle *> particles, double bounce, double friction_factor, double sliding_threshold);
     virtual ~CollideableObject() = default;
     [[nodiscard]] std::vector<Collision> get_earliest_collisions() const;
     virtual bool is_particle_colliding(Particle *p) const = 0;
     virtual Collision compute_collision_details(Particle *p) const = 0;
+    bool is_collision_sliding(const Collision &collision) const;
     void backtrack_particles(double backtracking_factor) const;
     void bounce_single_particle(const Collision &collision) const;
+    void slow_particle_from_friction(const Collision &collision, double dt) const;
 
 private:
     std::vector<Particle *> m_particles;
     const double m_bounce;
+    const double m_friction_factor;
+    const double m_sliding_threshold;
 };
