@@ -199,7 +199,7 @@ void force_scene(std::vector<Particle *> &pVector, std::vector<Force *> &fVector
 
     // FixedEndPointSpring
     pVector.push_back(new Particle(botLeft, visualizeForces, pVector.size()));
-    fVector.push_back(new FixedEndpointSpringForce(pVector[pVector.size() - 1], botLeft + vOffset, 0.2, 0.1, 0.05));
+    fVector.push_back(new FixedEndpointSpringForce(pVector[pVector.size() - 1], botLeft + vOffset, 0.1, 0.1, 0.05));
 
     // Gravitational
     pVector.push_back(new Particle(botRight, visualizeForces, pVector.size()));
@@ -281,10 +281,15 @@ void set_scene(int scene, std::vector<Particle *> &pVector, std::vector<Force *>
             attachCloth(Vec2f(0.0, 0.0), 8, 40, 0.045, pVector, fVector, cVector, visualizeForces);
         }   break;
         case 6: {
+            currentSceneName = "Cloth wall collision";
+            constructCloth(Vec2f(0.0, 0.0), 20, 5, 0.045, true, false, pVector, fVector, cVector, visualizeForces);
+            oVector.push_back(new Plane(Vec2f(0.9, 0.0), Vec2f(-1.0, 0.0), 0.04, 0.5));
+        }   break;
+        case 7: {
             hairy_head_scene(pVector, fVector, cVector, oVector, visualizeForces);
             break;
         }
-        case 7: {
+        case 8: {
             car_scene(pVector, fVector, cVector, oVector, visualizeForces);
             // rigid_body_scene(pVector, fVector, cVector, oVector, visualizeForces);
             // currentSceneName = std::to_string(scene) + ". Pendulum";
@@ -297,14 +302,10 @@ void set_scene(int scene, std::vector<Particle *> &pVector, std::vector<Force *>
             // cVector.push_back(new CircularWireConstraint(pVector[0], center, dist, 0));
             // cVector.push_back(new RodConstraint(pVector[0], pVector[1], dist, 1));
         }   break;
-        case 8: {
+        case 9: {
             rigid_body_scene(pVector, fVector, cVector, oVector, visualizeForces);
         }   break;
-        case 0: {
-            currentSceneName = std::to_string(scene) + ". Cloth collision";
-            constructCloth(Vec2f(0.0, 0.0), 20, 5, 0.045, true, false, pVector, fVector, cVector, visualizeForces);
-            oVector.push_back(new Plane(Vec2f(0.9, 0.0), Vec2f(-1.0, 0.0), 0.04, 0.5));
-        }   break;
+
         // OLD SCENES
         // case 2:
         //     currentSceneName = std::to_string(scene) + ". Double spring";
@@ -430,7 +431,7 @@ void attachCloth(Vec2f origin, size_t rows, size_t cols, double spacing, std::ve
                  std::vector<Force *> &fVector, std::vector<Constraint *> &cVector, bool visualizeForces) {
     // const double centerOffset = 0.5 * cols * spacing;
     const Vec2f offset(-0.5 * cols * spacing, 0.5 * rows * spacing);
-    const double supportHeight = 2 * spacing; // Height relative to cloth
+    const double supportHeight = 5 * spacing; // Height relative to cloth
     const size_t nrSupport = 5; // Amount of constraint support particel
     const size_t interPos = cols / nrSupport; // For dividing the supports uniformly
 
@@ -447,8 +448,8 @@ void attachCloth(Vec2f origin, size_t rows, size_t cols, double spacing, std::ve
 
         // std::cout << pVector[idx1]->m_ConstructPos << " " << pos <<  " " << euclidean << std::endl;
         // Connecting to bottom two particles
-        fVector.push_back(new FixedEndpointSpringForce(pVector[idx1], pos, 0, 10.0, 0.1));
-        fVector.push_back(new FixedEndpointSpringForce(pVector[idx2], pos, 0, 10.0, 0.1));
+        fVector.push_back(new FixedEndpointSpringForce(pVector[idx1], pos, 0, 5.0, 0.1));
+        fVector.push_back(new FixedEndpointSpringForce(pVector[idx2], pos, 0, 5.0, 0.1));
 
         fVector.push_back(new LinearForce(pVector, Vec2f(0.0, -0.01)));
         // Wind
