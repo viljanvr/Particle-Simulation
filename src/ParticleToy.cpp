@@ -369,10 +369,10 @@ static void idle_func(void) {
 
 static void display_func(void) {
     pre_display();
+    draw_collidable_objects();
     draw_forces();
     draw_constraints();
     draw_particles();
-    draw_collidable_objects();
     draw_title();
 
     post_display();

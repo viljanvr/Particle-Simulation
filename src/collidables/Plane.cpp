@@ -1,5 +1,4 @@
 #include "Plane.h"
-#include <iostream>
 #include "gfx/vec2.h"
 
 #if defined(__APPLE__) && defined(__aarch64__)
@@ -8,33 +7,30 @@
 #include <GL/glut.h>
 #endif
 
-Plane::Plane(const Vec2f &origin, const Vec2f &normal, std::vector<Particle *> particles, double epsilon, double bounce) :
-    CollideableObject(std::move(particles), bounce), m_Origin(origin), m_Epsilon(epsilon) {
+Plane::Plane(const Vec2f &origin, const Vec2f &normal, std::vector<Particle *> particles, double epsilon,
+             double bounce) : CollideableObject(std::move(particles), bounce), m_Origin(origin), m_Epsilon(epsilon) {
     m_Normal = normal / norm(normal);
 };
 
 static float cross_product(const Vec2f &a, const Vec2f &b) { return a[0] * b[1] - a[1] * b[0]; }
 
 bool Plane::is_particle_colliding(Particle *p) const {
-    return (
-        (p->m_Position - m_Origin) * m_Normal < m_Epsilon
-        && m_Normal * p->m_Velocity < 0
-    );
+    return ((p->m_Position - m_Origin) * m_Normal < m_Epsilon && m_Normal * p->m_Velocity < 0);
 }
 
 Collision Plane::compute_collision_details(Particle *p) const {
     // Backtracking is only needed if the particle has crossed the plane
     if ((p->m_Position - m_Origin) * m_Normal > 0) {
-        return Collision {p, m_Normal, 0.0};
+        return Collision{p, m_Normal, 0.0};
     }
 
     Vec2f plane_dir = Vec2f(-m_Normal[1], m_Normal[0]);
     double t = cross_product(m_Origin - p->m_PreviousPosition, plane_dir) /
-              cross_product(p->m_Position - p->m_PreviousPosition, plane_dir);
+               cross_product(p->m_Position - p->m_PreviousPosition, plane_dir);
 
     double backtracking = (1.0 - t);
 
-    return Collision {p, m_Normal, backtracking};
+    return Collision{p, m_Normal, backtracking};
 }
 
 
