@@ -80,6 +80,27 @@ void hairy_head_scene(std::vector<Particle *> &pVector, std::vector<Force *> &fV
     oVector.push_back(new CircularCollisionObject({0, 0}, head_radius, pVector, 0.03, 0.4));
 }
 
+void collider_scene(
+    std::vector<Particle *> &pVector,
+    std::vector<Force *> &fVector,
+    std::vector<Constraint *> &cVector,
+    std::vector<CollideableObject * > &oVector,
+    bool visualizeForces
+) {
+    currentSceneName = "Collisions with planes and circles";
+    pVector.push_back(new Particle({0.0, 1.0}, visualizeForces, pVector.size()));
+    pVector.push_back(new Particle({0.05, 1.1}, visualizeForces, pVector.size()));
+    pVector.push_back(new Particle({-0.05, 1.2}, visualizeForces, pVector.size()));
+    pVector.push_back(new Particle({0.07, 1.3}, visualizeForces, pVector.size()));
+    pVector.push_back(new Particle({-0.07, 1.4}, visualizeForces, pVector.size()));
+    fVector.push_back(new LinearForce(pVector, {0, -0.04}));
+    fVector.push_back(new QuadraticDragForce(pVector, 0.5));
+    oVector.push_back(new CircularCollisionObject({0.01, 0.0}, 0.2, pVector, 0.01, 0.7));
+    oVector.push_back(new Plane({-0.5, -0.7}, {3.0, 1.0}, pVector, 0.01, 0.7));
+    oVector.push_back(new Plane({0.2, -0.7}, {-1.5, 1.0}, pVector, 0.01, 0.7));
+    oVector.push_back(new Plane({0.0, -0.6}, {0.15, 1.0}, pVector, 0.01, 0.7));
+}
+
 void set_scene(int scene, std::vector<Particle *> &pVector, std::vector<Force *> &fVector,
                std::vector<Constraint *> &cVector, std::vector<CollideableObject *> &oVector, bool visualizeForces) {
     const double dist = 0.2;
