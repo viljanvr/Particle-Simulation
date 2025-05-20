@@ -64,6 +64,7 @@ static BlowForce *mouse_blow_force;
 static std::unique_ptr<Particle> mouse_particle = std::make_unique<Particle>(Vec2f(mx, my), visualizeForces, 100);
 static std::unique_ptr<IntegrationScheme> integration_scheme = std::make_unique<RungeKuttaScheme>();
 extern std::string currentSceneName;
+static std::string notification = "";
 
 /*
 ----------------------------------------------------------------------
@@ -186,6 +187,18 @@ static void draw_title() {
     }
 }
 
+static void draw_notification() {
+    void *font = GLUT_BITMAP_HELVETICA_12;
+    // Center depends on string length
+    float centered_x = -static_cast<float>(getBitmapStringWidth(notification, font)) / static_cast<float>(win_x);
+
+    glColor3f(0.0, 1.0, 0.0);
+    glRasterPos2f(centered_x, -0.95);
+    for (char c: notification) {
+        glutBitmapCharacter(font, c);
+    }
+}
+
 /*
 ----------------------------------------------------------------------
 relates mouse movements to particle toy construction
@@ -260,6 +273,14 @@ static void remap_GUI() {
     }
 }
 
+static void clear_notification(int value) { notification = ""; }
+
+static void set_notification(std::string message) {
+    notification = message;
+    glutTimerFunc(3000, clear_notification, 0);
+}
+
+
 /*
 ----------------------------------------------------------------------
 GLUT callback routines
@@ -291,21 +312,25 @@ static void key_func(unsigned char key, int x, int y) {
         case 'E':
             integration_scheme = std::make_unique<EulerScheme>();
             std::cout << "Switched to EulerScheme." << std::endl;
+            set_notification("Switched to EulerScheme");
             break;
         case 'm':
         case 'M':
             integration_scheme = std::make_unique<MidpointScheme>();
             std::cout << "Switched to MidpointScheme." << std::endl;
+            set_notification("Switched to MidpointScheme");
             break;
         case 'r':
         case 'R':
             integration_scheme = std::make_unique<RungeKuttaScheme>();
             std::cout << "Switched to RangeKuttaScheme." << std::endl;
+            set_notification("Switched to RangeKuttaScheme");
             break;
         case 'i':
         case 'I':
             integration_scheme = std::make_unique<ImplicitEulerScheme>();
             std::cout << "Switched to ImplicitEulerScheme." << std::endl;
+            set_notification("Switched to ImplicitEulerScheme");
             break;
         case 'f':
         case 'F':
@@ -374,6 +399,7 @@ static void display_func(void) {
     draw_constraints();
     draw_particles();
     draw_title();
+    draw_notification();
 
     post_display();
 }
@@ -437,7 +463,7 @@ int main(int argc, char **argv) {
     printf("\t Toggle construction/simulation display with the spacebar key\n");
     printf("\t Dump frames by pressing the 'd' key\n");
     printf("\t Quit by pressing the 'q' key\n");
-    printf("\t Switch integration scheme by using 'e', 'm' and 'r'\n");
+    printf("\t Switch integration scheme by using 'e', 'm', 'r' and 'i'\n");
     printf("\t Toggle force visualization by pressing the 'f' key\n");
     printf("\t Switch to a given scene using '0-9'\n");
     printf("\t Drag particles with a spring force using the left mouse button\n");
