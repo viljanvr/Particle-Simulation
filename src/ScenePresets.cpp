@@ -59,9 +59,9 @@ void hairy_head_scene(std::vector<Particle *> &pVector, std::vector<Force *> &fV
             if (j == 0) {
                 cVector.push_back(
                         new CircularWireConstraint(pVector.back(), head_delta, hair_segment_length, cVector.size()));
+                //fVector.push_back(new FixedEndpointSpringForce(pVector.back(), head_delta, hair_segment_length, 100.0, 10.0));
             } else {
-                // fVector.push_back(new SpringForce(pVector.back(), pVector[pVector.size() - 2], hair_segment_length,
-                // 100.0, 10.0));
+                //fVector.push_back(new SpringForce(pVector.back(), pVector[pVector.size() - 2], hair_segment_length, 100.0, 10.0));
                 cVector.push_back(new RodConstraint(pVector.back(), pVector[pVector.size() - 2], hair_segment_length,
                                                     cVector.size()));
                 if (j >= 3) {

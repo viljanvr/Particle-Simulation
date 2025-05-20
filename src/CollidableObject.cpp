@@ -13,16 +13,19 @@ void CollideableObject::bounce_particle(const Collision &c, double dt) const {
     // Calculate the normal component of the velocity
     Vec2f v_normal = (c.p->m_Velocity * c.collisionNormal) * c.collisionNormal;
 
-    // Flip velocity
     if (is_collision_sliding(c)) {
-        slow_particle_from_friction(c, dt);
+        c.p->m_Velocity -= v_normal;
     } else {
         c.p->m_Velocity -= v_normal * (1.0 + m_bounce);
+    }
 
-        Vec2f intersection = c.p->m_Position + c.backtracking_factor * (c.p->m_PreviousPosition - c.p->m_Position);
-        Vec2f post_collision_movement = c.p->m_Position - intersection;
-        c.p->m_Position = intersection + post_collision_movement +
-                          (-2 * post_collision_movement * c.collisionNormal) * c.collisionNormal;
+    Vec2f intersection = c.p->m_Position + c.backtracking_factor * (c.p->m_PreviousPosition - c.p->m_Position);
+    Vec2f post_collision_movement = c.p->m_Position - intersection;
+    c.p->m_Position = intersection + post_collision_movement +
+                      (-2 * post_collision_movement * c.collisionNormal) * c.collisionNormal;
+
+    if (is_collision_sliding(c)) {
+        slow_particle_from_friction(c, dt);
     }
 }
 
