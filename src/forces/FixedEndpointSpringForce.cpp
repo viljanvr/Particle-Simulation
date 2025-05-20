@@ -74,9 +74,9 @@ std::vector<Force::JacobianEntry> FixedEndpointSpringForce::getJv() {
 
 void FixedEndpointSpringForce::draw() {
     glBegin(GL_LINES);
-    glColor3f(0.6, 0.7, 0.8);
+    glColor3f(1.0, 1.0, 0.0);
     glVertex2f(m_p->m_Position[0], m_p->m_Position[1]);
-    glColor3f(0.6, 0.7, 0.8);
+    glColor3f(1.0, 1.0, 0.0);
     glVertex2f(m_end[0], m_end[1]);
     glEnd();
 }
