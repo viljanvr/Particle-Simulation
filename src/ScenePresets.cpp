@@ -80,6 +80,23 @@ void hairy_head_scene(std::vector<Particle *> &pVector, std::vector<Force *> &fV
     oVector.push_back(new CircularCollisionObject({0, 0}, head_radius, pVector, 0.03, 0.4));
 }
 
+void rigid_body_scene(
+    std::vector<Particle *> &pVector,
+    std::vector<Force *> &fVector,
+    std::vector<Constraint *> &cVector,
+    std::vector<CollideableObject * > &oVector,
+    bool visualizeForces
+) {
+    currentSceneName = "Rigid-body-like constraint structure";
+    constructCloth({0.2 - 0.8, -0.2}, 4, 4, 0.1, true, true, pVector, fVector, cVector, visualizeForces);
+    //fVector.push_back(new FixedEndpointSpringForce(pVector[0], {-1.1, 0.0}, 0.0, 0.5, 0.01));
+    fVector.push_back(new FixedEndpointSpringForce(pVector[15], {1.1, 0.0}, 0.0, 0.5, 0.1));
+    cVector.push_back(new CircularWireConstraint(pVector[0], {-0.8, 1.0}, 1.0, cVector.size()));
+    fVector.push_back(new QuadraticDragForce(pVector, 2.0));
+    fVector.push_back(new LinearForce(pVector, {0.0, -0.03}));
+    //oVector.push_back(new CircularCollisionObject({0.01, 0.0}, 0.2, pVector, 0.01, 0.7));
+}
+
 void collider_scene(
     std::vector<Particle *> &pVector,
     std::vector<Force *> &fVector,
@@ -93,8 +110,8 @@ void collider_scene(
     pVector.push_back(new Particle({-0.05, 1.2}, visualizeForces, pVector.size()));
     pVector.push_back(new Particle({0.07, 1.3}, visualizeForces, pVector.size()));
     pVector.push_back(new Particle({-0.07, 1.4}, visualizeForces, pVector.size()));
-    fVector.push_back(new LinearForce(pVector, {0, -0.04}));
-    fVector.push_back(new QuadraticDragForce(pVector, 0.5));
+    fVector.push_back(new LinearForce(pVector, {0, -0.05}));
+    fVector.push_back(new QuadraticDragForce(pVector, 2.0));
     oVector.push_back(new CircularCollisionObject({0.01, 0.0}, 0.2, pVector, 0.01, 0.7));
     oVector.push_back(new Plane({-0.5, -0.7}, {3.0, 1.0}, pVector, 0.01, 0.7));
     oVector.push_back(new Plane({0.2, -0.7}, {-1.5, 1.0}, pVector, 0.01, 0.7));
@@ -109,15 +126,16 @@ void set_scene(int scene, std::vector<Particle *> &pVector, std::vector<Force *>
 
     switch (scene) {
         case 1:
-            currentSceneName = std::to_string(scene) + ". Pendulum";
+            rigid_body_scene(pVector, fVector, cVector, oVector, visualizeForces);
+            //currentSceneName = std::to_string(scene) + ". Pendulum";
 
-            pVector.push_back(new Particle(center + offset, visualizeForces, 0));
-            pVector.push_back(new Particle(center + offset + Vec2f(0.001, dist), visualizeForces, 1));
+            //pVector.push_back(new Particle(center + offset, visualizeForces, 0));
+            //pVector.push_back(new Particle(center + offset + Vec2f(0.001, dist), visualizeForces, 1));
 
-            fVector.push_back(new LinearForce({pVector[0], pVector[1]}, Vec2f(0.00, -0.03)));
+            //fVector.push_back(new LinearForce({pVector[0], pVector[1]}, Vec2f(0.00, -0.03)));
 
-            cVector.push_back(new CircularWireConstraint(pVector[0], center, dist, 0));
-            cVector.push_back(new RodConstraint(pVector[0], pVector[1], dist, 1));
+            //cVector.push_back(new CircularWireConstraint(pVector[0], center, dist, 0));
+            //cVector.push_back(new RodConstraint(pVector[0], pVector[1], dist, 1));
             break;
 
         case 2:
