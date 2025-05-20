@@ -128,43 +128,15 @@ SparseMatrix getForceJacobianV(const std::vector<Particle *> &pVector, const std
     return j;
 }
 
-void handle_collisions(const std::vector<CollideableObject *> &oVector) {
-    // We want to backtrack everything to the earliest collision if there are multiple earliest collisions,
-    // we handle all of them.
-    std::vector<Collision> earliest_collisions;
-    std::vector<CollideableObject *> collision_objects;
-    // Get earliest collisions among all colliders.
+void handle_collisions(const std::vector<CollideableObject *> &oVector, const std::vector<Particle *> &pVector) {
+
     for (auto o: oVector) {
-        std::vector<Collision> collisions = o->get_earliest_collisions();
-        if (collisions.empty()) {
-            continue;
+        for (auto p: pVector) {
+            if (o->is_particle_colliding(p)) {
+                Collision c = o->compute_collision_details(p);
+                o->bounce_particle(c);
+            }
         }
-        double backtracking = collisions.back().backtracking_factor;
-        if (!earliest_collisions.empty() && earliest_collisions.back().backtracking_factor > backtracking) {
-            continue;
-        }
-        if (!earliest_collisions.empty() && earliest_collisions.back().backtracking_factor < backtracking) {
-            earliest_collisions.clear();
-            collision_objects.clear();
-        }
-        for (auto collision: collisions) {
-            earliest_collisions.push_back(collision);
-            collision_objects.push_back(o);
-        }
-    }
-
-    // Backtrack back to earliest collisions.
-    if (!earliest_collisions.empty()) {
-        for (auto o: oVector) {
-            o->backtrack_particles(earliest_collisions.back().backtracking_factor);
-        }
-    }
-
-
-    for (size_t i = 0; i < earliest_collisions.size(); ++i) {
-        Collision collision = earliest_collisions[i];
-        CollideableObject *o = collision_objects[i];
-        o->bounce_single_particle(collision);
     }
 }
 
@@ -181,5 +153,5 @@ void simulation_step(const std::vector<Particle *> &pVector, const std::vector<F
             [&]() { return getForceJacobianX(pVector, fVector); },
             [&]() { return getForceJacobianV(pVector, fVector); }, dt);
 
-    handle_collisions(oVector);
+    handle_collisions(oVector, pVector);
 }
