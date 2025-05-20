@@ -13,7 +13,7 @@ ifeq ($(UNAME_S), Darwin)
 		CXX_EXTRA_FLAGS = -framework GLUT -framework OpenGL -L/opt/homebrew/lib -lpng
 	else # Apple Intel
 	endif
-else ifeq ($(UNAME_M), Linux) # Linux
+else ifeq ($(UNAME_S), Linux) # Linux
 	RM = rm -vf
 	INCLUDE = $(INC_LINUX)
 	CXX_EXTRA_FLAGS = -lglut -lGLU -lGL -lpng

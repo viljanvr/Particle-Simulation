@@ -37,6 +37,7 @@ void three_body_problem_scene(std::vector<Particle *> &pVector, std::vector<Forc
 void hairy_head_scene(std::vector<Particle *> &pVector, std::vector<Force *> &fVector,
                       std::vector<Constraint *> &cVector, std::vector<CollideableObject *> &oVector,
                       bool visualizeForces) {
+    currentSceneName = "Hairy head";
     double head_radius = 0.3;
     size_t hair_count = 10;
     // which percentage of the head circumference is used to attach hairs?
@@ -166,6 +167,95 @@ void car_scene(std::vector<Particle *> &pVector, std::vector<Force *> &fVector, 
     oVector.push_back(new Plane({0, -0.5}, {-0.2, 1.0}, 0.01, 0.1, 0.8));
 }
 
+void force_scene(std::vector<Particle *> &pVector, std::vector<Force *> &fVector,
+                      std::vector<Constraint *> &cVector, std::vector<CollideableObject *> &oVector,
+                      bool visualizeForces) {
+    currentSceneName = "Forces";
+    // Starting positions
+    const Vec2f topRight (0.5, 0.25);
+    const Vec2f botRight (0.5, -0.5);
+    const Vec2f botLeft (-0.5, -0.5);
+    const Vec2f vOffset(0.0, 0.2);
+
+    // Double spring
+    const Vec2f topLeft (-0.5, 0.25);
+    pVector.push_back(new Particle(topLeft + 0 * vOffset, visualizeForces, pVector.size()));
+    pVector.push_back(new Particle(topLeft + 1 * vOffset, visualizeForces, pVector.size()));
+    pVector.push_back(new Particle(topLeft + 2 * vOffset, visualizeForces, pVector.size()));
+    fVector.push_back(new SpringForce(pVector[pVector.size() - 3], pVector[pVector.size() - 2], 0.1, 1.0, 0.5));
+    fVector.push_back(new SpringForce(pVector[pVector.size() - 2], pVector[pVector.size() - 1], 0.1, 1.0, 0.5));
+
+    // Angular springs
+    constexpr double total_height = 0.5;
+    constexpr size_t particles = 3;
+    constexpr double rod_length = total_height / particles;
+    pVector.push_back(new Particle(topRight, visualizeForces, pVector.size()));
+    pVector.push_back(new Particle(topRight + Vec2f(0, rod_length), visualizeForces, pVector.size()));
+    pVector.push_back(new Particle(topRight + 2 * Vec2f(0, rod_length), visualizeForces, pVector.size()));
+    fVector.push_back(new AngularSpringForce(pVector[pVector.size() - 3], pVector[pVector.size() - 2],
+                                                    pVector[pVector.size() - 1],90,0.1, 0.05));
+    cVector.push_back(new RodConstraint(pVector[pVector.size() - 3], pVector[pVector.size() - 2], rod_length, cVector.size()));
+    cVector.push_back(new RodConstraint(pVector[pVector.size() - 2], pVector[pVector.size() - 1], rod_length, cVector.size()));
+
+    // FixedEndPointSpring
+    pVector.push_back(new Particle(botLeft, visualizeForces, pVector.size()));
+    fVector.push_back(new FixedEndpointSpringForce(pVector[pVector.size() - 1], botLeft + vOffset, 0.2, 0.1, 0.05));
+
+    // Gravitational
+    pVector.push_back(new Particle(botRight, visualizeForces, pVector.size()));
+    pVector.push_back(new Particle(botRight + vOffset, visualizeForces, pVector.size()));
+    fVector.push_back(new GravitationalForce({pVector[pVector.size() - 1], pVector[pVector.size() - 2]}, 0.0001));
+
+    // Linear Force
+    pVector.push_back(new Particle(Vec2f(0.0,0.8), visualizeForces, pVector.size()));
+    fVector.push_back(new LinearForce({pVector[pVector.size() - 1]}, Vec2f(0.0,-0.001)));
+}
+
+void constraint_scene(std::vector<Particle *> &pVector, std::vector<Force *> &fVector,
+                      std::vector<Constraint *> &cVector, std::vector<CollideableObject *> &oVector,
+                      bool visualizeForces) {
+    currentSceneName = "Constraints";
+    // Circular constraint
+    double radius = 0.3;
+    pVector.push_back(new Particle(Vec2f(0.20,0.0), visualizeForces, pVector.size()));
+    cVector.push_back(new CircularWireConstraint(pVector[pVector.size() - 1], Vec2f(0.20 + radius, 0.0), radius, cVector.size()));
+    // Rod constraint
+    pVector.push_back(new Particle(Vec2f(-0.5, 0.1), visualizeForces, pVector.size()));
+    pVector.push_back(new Particle(Vec2f(-0.5,-0.1), visualizeForces, pVector.size()));
+    cVector.push_back(new RodConstraintVar(pVector[pVector.size() - 2], pVector[pVector.size() - 1], 0.3, cVector.size()));
+}
+void double_pendulum(std::vector<Particle *> &pVector, std::vector<Force *> &fVector, std::vector<Constraint *> &cVector,
+                        std::vector<CollideableObject *> &oVector, bool visualizeForces) {
+    currentSceneName = "None vs. Quadratic Drag Force";
+    const double total_height = 0.5;
+    const size_t particles = 3;
+    const double rod_length = total_height / particles;
+    const Vec2f left(-0.5, 0.0);
+    const Vec2f right(0.5, 0.0);
+
+    std::vector<Particle *> right_particles;
+    for (size_t i = 0; i < particles - 1; i++) {
+        pVector.push_back(new Particle(left + (i + 1) * Vec2f(0, rod_length), visualizeForces, pVector.size()));
+        pVector.push_back(
+                new Particle(right + (i + 1) * Vec2f(0, rod_length), visualizeForces, pVector.size()));
+        right_particles.push_back(pVector.back());
+    }
+    pVector.push_back(
+            new Particle(left + particles * Vec2f(0.001, rod_length), visualizeForces, pVector.size()));
+    pVector.push_back(
+            new Particle(right + particles * Vec2f(0.001, rod_length), visualizeForces, pVector.size()));
+
+    fVector.push_back(new LinearForce(pVector, Vec2f(0.00, -0.03)));
+    fVector.push_back(new QuadraticDragForce(right_particles, 1.0));
+    cVector.push_back(new CircularWireConstraint(pVector[0], left, rod_length, cVector.size()));
+    cVector.push_back(new CircularWireConstraint(pVector[1], right, rod_length, cVector.size()));
+    for (size_t i = 1; i < particles; i++) {
+        cVector.push_back(new RodConstraintVar(pVector[2 * i], pVector[2 * i - 2], rod_length, cVector.size()));
+        cVector.push_back(
+                new RodConstraintVar(pVector[2 * i + 1], pVector[2 * i - 1], rod_length, cVector.size()));
+    }
+}
+
 void set_scene(int scene, std::vector<Particle *> &pVector, std::vector<Force *> &fVector,
                std::vector<Constraint *> &cVector, std::vector<CollideableObject *> &oVector, bool visualizeForces) {
     const double dist = 0.2;
@@ -174,6 +264,27 @@ void set_scene(int scene, std::vector<Particle *> &pVector, std::vector<Force *>
 
     switch (scene) {
         case 1:
+            force_scene(pVector, fVector, cVector, oVector, visualizeForces);
+            break;
+        case 2: {
+            constraint_scene(pVector, fVector, cVector, oVector, visualizeForces);
+        }  break;
+        case 3: {
+            double_pendulum(pVector, fVector, cVector, oVector, visualizeForces);
+        }   break;
+        case 4: {
+            collider_scene(pVector, fVector, cVector, oVector, visualizeForces);
+        }   break;
+        case 5: {
+            currentSceneName = "Cloth";
+            constructCloth(Vec2f(0.0, 0.0), 8, 40, 0.045, true, false, pVector, fVector, cVector, visualizeForces);
+            attachCloth(Vec2f(0.0, 0.0), 8, 40, 0.045, pVector, fVector, cVector, visualizeForces);
+        }   break;
+        case 6: {
+            hairy_head_scene(pVector, fVector, cVector, oVector, visualizeForces);
+            break;
+        }
+        case 7: {
             car_scene(pVector, fVector, cVector, oVector, visualizeForces);
             // rigid_body_scene(pVector, fVector, cVector, oVector, visualizeForces);
             // currentSceneName = std::to_string(scene) + ". Pendulum";
@@ -185,107 +296,65 @@ void set_scene(int scene, std::vector<Particle *> &pVector, std::vector<Force *>
 
             // cVector.push_back(new CircularWireConstraint(pVector[0], center, dist, 0));
             // cVector.push_back(new RodConstraint(pVector[0], pVector[1], dist, 1));
-            break;
-
-        case 2:
-            currentSceneName = std::to_string(scene) + ". Double spring";
-            pVector.push_back(new Particle(center + 0 * offset, visualizeForces, 0));
-            pVector.push_back(new Particle(center + 1 * offset, visualizeForces, 1));
-            pVector.push_back(new Particle(center + 2 * offset, visualizeForces, 2));
-
-            fVector.push_back(new SpringForce(pVector[0], pVector[1], 0.1, 1.0, 0.5));
-            fVector.push_back(new SpringForce(pVector[1], pVector[2], 0.1, 1.0, 0.5));
-            break;
-        case 3: {
-            currentSceneName = std::to_string(scene) + ". None vs. Quadratic Drag Force";
-
-            const double total_height = 0.5;
-            const size_t particles = 3;
-            const double rod_length = total_height / particles;
-            const Vec2f left(-0.5, 0.0);
-            const Vec2f right(0.5, 0.0);
-
-            std::vector<Particle *> right_particles;
-
-            for (size_t i = 0; i < particles - 1; i++) {
-                pVector.push_back(new Particle(left + (i + 1) * Vec2f(0, rod_length), visualizeForces, pVector.size()));
-                pVector.push_back(
-                        new Particle(right + (i + 1) * Vec2f(0, rod_length), visualizeForces, pVector.size()));
-                right_particles.push_back(pVector.back());
-            }
-            pVector.push_back(
-                    new Particle(left + particles * Vec2f(0.001, rod_length), visualizeForces, pVector.size()));
-            pVector.push_back(
-                    new Particle(right + particles * Vec2f(0.001, rod_length), visualizeForces, pVector.size()));
-
-            fVector.push_back(new LinearForce(pVector, Vec2f(0.00, -0.03)));
-            fVector.push_back(new QuadraticDragForce(right_particles, 1.0));
-
-            cVector.push_back(new CircularWireConstraint(pVector[0], left, rod_length, cVector.size()));
-            cVector.push_back(new CircularWireConstraint(pVector[1], right, rod_length, cVector.size()));
-            for (size_t i = 1; i < particles; i++) {
-                cVector.push_back(new RodConstraintVar(pVector[2 * i], pVector[2 * i - 2], rod_length, cVector.size()));
-                cVector.push_back(
-                        new RodConstraintVar(pVector[2 * i + 1], pVector[2 * i - 1], rod_length, cVector.size()));
-            }
-
-        } break;
-        case 4: {
-            currentSceneName = std::to_string(scene) + ". Angular Springs";
-            constexpr double total_height = 0.8;
-            constexpr size_t particles = 15;
-            constexpr double rod_length = total_height / particles;
-            Vec2f offset(0.0, -0.3);
-
-            for (size_t i = 0; i < particles; i++) {
-                pVector.push_back(new Particle(center + (i + 1) * Vec2f(0, rod_length) + offset, visualizeForces,
-                                               pVector.size()));
-            }
-
-            for (size_t i = 2; i < particles; i++) {
-                fVector.push_back(new AngularSpringForce(pVector[i - 2], pVector[i - 1], pVector[i], 90 + (i % 2) * 180,
-                                                         0.1, 0.05));
-            }
-
-            for (size_t i = 1; i < particles; i++) {
-                cVector.push_back(new RodConstraint(pVector[i], pVector[i - 1], rod_length, cVector.size()));
-            }
-        } break;
-        case 5:
-            currentSceneName = std::to_string(scene) + ". Three-Body Problem";
-            three_body_problem_scene(pVector, fVector, cVector, visualizeForces);
-            break;
-        case 6:
-            currentSceneName = std::to_string(scene) + ". Ground Collision";
-            pVector.push_back(new Particle(center, visualizeForces, 0));
-            oVector.push_back(new Plane(Vec2f(0.0, -0.5), Vec2f(0.0, 1.0)));
-            fVector.push_back(new LinearForce({pVector[0]}, Vec2f(0.00, -0.03)));
-            break;
-        case 7: {
-            currentSceneName = std::to_string(scene) + ". Down-Hill Collision";
-            Vec2f position = Vec2f(-0.75, 0.5);
-            pVector.push_back(new Particle(position + offset, visualizeForces, 0));
-            pVector.push_back(new Particle(position, visualizeForces, 1));
-            pVector.push_back(new Particle(position - offset, visualizeForces, 2));
-            oVector.push_back(new Plane(Vec2f(0.0, -0.5), Vec2f(0.5, 1.0), 0.001, 0.1));
-            fVector.push_back(new LinearForce({pVector[0], pVector[1], pVector[2]}, Vec2f(0.00, -0.03)));
-        } break;
+        }   break;
         case 8: {
-            currentSceneName = std::to_string(scene) + ". Cloth";
-            constructCloth(Vec2f(0.0, 0.0), 8, 40, 0.045, true, false, pVector, fVector, cVector, visualizeForces);
-            attachCloth(Vec2f(0.0, 0.0), 8, 40, 0.045, pVector, fVector, cVector, visualizeForces);
-        } break;
-        case 9: {
-            currentSceneName = std::to_string(scene) + ". Hairy head";
-            hairy_head_scene(pVector, fVector, cVector, oVector, visualizeForces);
-            break;
-        }
-
+            rigid_body_scene(pVector, fVector, cVector, oVector, visualizeForces);
+        }   break;
         case 0: {
             currentSceneName = std::to_string(scene) + ". Cloth collision";
             constructCloth(Vec2f(0.0, 0.0), 20, 5, 0.045, true, false, pVector, fVector, cVector, visualizeForces);
             oVector.push_back(new Plane(Vec2f(0.9, 0.0), Vec2f(-1.0, 0.0), 0.04, 0.5));
-        } break;
+        }   break;
+        // OLD SCENES
+        // case 2:
+        //     currentSceneName = std::to_string(scene) + ". Double spring";
+        //     pVector.push_back(new Particle(center + 0 * offset, visualizeForces, 0));
+        //     pVector.push_back(new Particle(center + 1 * offset, visualizeForces, 1));
+        //     pVector.push_back(new Particle(center + 2 * offset, visualizeForces, 2));
+        //
+        //     fVector.push_back(new SpringForce(pVector[0], pVector[1], 0.1, 1.0, 0.5));
+        //     fVector.push_back(new SpringForce(pVector[1], pVector[2], 0.1, 1.0, 0.5));
+        //     break;
+        // case 4: {
+        //     currentSceneName = std::to_string(scene) + ". Angular Springs";
+        //     constexpr double total_height = 0.8;
+        //     constexpr size_t particles = 15;
+        //     constexpr double rod_length = total_height / particles;
+        //     Vec2f offset(0.0, -0.3);
+        //
+        //     for (size_t i = 0; i < particles; i++) {
+        //         pVector.push_back(new Particle(center + (i + 1) * Vec2f(0, rod_length) + offset, visualizeForces,
+        //                                        pVector.size()));
+        //     }
+        //
+        //     for (size_t i = 2; i < particles; i++) {
+        //         fVector.push_back(new AngularSpringForce(pVector[i - 2], pVector[i - 1], pVector[i], 90 + (i % 2) * 180,
+        //                                                  0.1, 0.05));
+        //     }
+        //
+        //     for (size_t i = 1; i < particles; i++) {
+        //         cVector.push_back(new RodConstraint(pVector[i], pVector[i - 1], rod_length, cVector.size()));
+        //     }
+        // } break;
+        // case 5:
+        //     currentSceneName = std::to_string(scene) + ". Three-Body Problem";
+        //     three_body_problem_scene(pVector, fVector, cVector, visualizeForces);
+        //     break;
+        // case 6:
+        //     currentSceneName = std::to_string(scene) + ". Ground Collision";
+        //     pVector.push_back(new Particle(center, visualizeForces, 0));
+        //     oVector.push_back(new Plane(Vec2f(0.0, -0.5), Vec2f(0.0, 1.0)));
+        //     fVector.push_back(new LinearForce({pVector[0]}, Vec2f(0.00, -0.03)));
+        //     break;
+        // case 7: {
+        //     currentSceneName = std::to_string(scene) + ". Down-Hill Collision";
+        //     Vec2f position = Vec2f(-0.75, 0.5);
+        //     pVector.push_back(new Particle(position + offset, visualizeForces, 0));
+        //     pVector.push_back(new Particle(position, visualizeForces, 1));
+        //     pVector.push_back(new Particle(position - offset, visualizeForces, 2));
+        //     oVector.push_back(new Plane(Vec2f(0.0, -0.5), Vec2f(0.5, 1.0), 0.001, 0.1));
+        //     fVector.push_back(new LinearForce({pVector[0], pVector[1], pVector[2]}, Vec2f(0.00, -0.03)));
+        // } break;
 
         default:
             currentSceneName = "Default: Single Particle";
