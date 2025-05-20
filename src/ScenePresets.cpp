@@ -125,8 +125,8 @@ void add_wheel(Vec2f center, double radius, size_t particle_count, size_t spring
             Particle *p1 = pVector[first_index + i];
             Particle *p2 = pVector[first_index + ((i + offset) % particle_count)];
             double dist = norm(p1->m_Position - p2->m_Position);
-            fVector.push_back(new SpringForce(p1, p2, dist, 3.0, 0.1));
-            fVector.push_back(new SpringForce(p1, pVector.back(), radius, 3.0, 0.1));
+            fVector.push_back(new SpringForce(p1, p2, dist, 8.0, 1.0));
+            fVector.push_back(new SpringForce(p1, pVector.back(), radius, 8.0, 1.0));
         }
     }
 }
@@ -161,9 +161,9 @@ void car_scene(std::vector<Particle *> &pVector, std::vector<Force *> &fVector, 
     cVector.push_back(
             new RodConstraint(top_left, top_right, norm(top_left->m_Position - top_right->m_Position), cVector.size()));
 
-    fVector.push_back(new LinearForce(pVector, {0, -0.02}));
-    oVector.push_back(new Plane({0, -0.5}, {0.2, 1.0}, 0.05, 0.1));
-    oVector.push_back(new Plane({0, -0.5}, {-0.2, 1.0}, 0.05, 0.1));
+    fVector.push_back(new LinearForce(pVector, {0, -0.1}));
+    oVector.push_back(new Plane({0, -0.5}, {0.2, 1.0}, 0.01, 0.1, 0.8));
+    oVector.push_back(new Plane({0, -0.5}, {-0.2, 1.0}, 0.01, 0.1, 0.8));
 }
 
 void set_scene(int scene, std::vector<Particle *> &pVector, std::vector<Force *> &fVector,
