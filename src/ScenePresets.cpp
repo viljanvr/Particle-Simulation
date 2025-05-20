@@ -134,6 +134,7 @@ void add_wheel(Vec2f center, double radius, size_t particle_count, size_t spring
 
 void car_scene(std::vector<Particle *> &pVector, std::vector<Force *> &fVector, std::vector<Constraint *> &cVector,
                std::vector<CollideableObject *> &oVector, bool visualizeForces) {
+    currentSceneName = "Moving car";
     float left = -0.8;
     float right = -0.5;
     float bottom = 0.0;
