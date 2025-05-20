@@ -118,6 +118,71 @@ void collider_scene(
     oVector.push_back(new Plane({0.0, -0.6}, {0.15, 1.0}, pVector, 0.01, 0.7));
 }
 
+void add_wheel(
+    Vec2f center,
+    double radius,
+    size_t particle_count,
+    size_t springs_per_particle,
+    std::vector<Particle *> &pVector,
+    std::vector<Force *> &fVector,
+    std::vector<Constraint *> &cVector,
+    std::vector<CollideableObject * > &oVector,
+    bool visualizeForces
+) {
+    size_t first_index = pVector.size();
+    double angle_between_particles = 2 * M_PI / (particle_count);
+    for (size_t i = 0; i < particle_count; ++i) {
+        double angle = angle_between_particles * i;
+        Vec2f position = center + radius * Vec2f(sin(angle), cos(angle));
+        pVector.push_back(new Particle(position, visualizeForces, pVector.size()));
+    }
+    pVector.push_back(new Particle(center, visualizeForces, pVector.size()));
+    for (size_t i = 0; i < particle_count; ++i) {
+        for (size_t offset = 1; offset <= springs_per_particle; ++offset) {
+            Particle *p1 = pVector[first_index + i];
+            Particle *p2 = pVector[first_index + ((i + offset) % particle_count)];
+            double dist = norm(p1->m_Position - p2->m_Position);
+            fVector.push_back(new SpringForce(p1, p2, dist, 3.0, 0.1));
+            fVector.push_back(new SpringForce(p1, pVector.back(), radius, 3.0, 0.1));
+        }
+    }
+
+}
+
+void car_scene(
+    std::vector<Particle *> &pVector,
+    std::vector<Force *> &fVector,
+    std::vector<Constraint *> &cVector,
+    std::vector<CollideableObject * > &oVector,
+    bool visualizeForces
+) {
+    float left = -0.8;
+    float right = -0.5;
+    float bottom = 0.0;
+    float top = 0.2;
+    float radius = 0.1;
+    add_wheel({left, bottom}, radius, 14, 4, pVector, fVector, cVector, oVector, visualizeForces);
+    Particle *bottom_left = pVector.back();
+    add_wheel({right, bottom}, radius, 14, 4, pVector, fVector, cVector, oVector, visualizeForces);
+    Particle *bottom_right = pVector.back();
+
+    pVector.push_back(new Particle({left, top}, visualizeForces, pVector.size()));
+    Particle *top_left = pVector.back();
+    pVector.push_back(new Particle({right, top}, visualizeForces, pVector.size()));
+    Particle *top_right = pVector.back();
+
+    cVector.push_back(new RodConstraint(bottom_left, bottom_right, norm(bottom_left->m_Position - bottom_right->m_Position), cVector.size()));
+    cVector.push_back(new RodConstraint(bottom_left, top_left, norm(bottom_left->m_Position - top_left->m_Position), cVector.size()));
+    cVector.push_back(new RodConstraint(bottom_left, top_right, norm(bottom_left->m_Position - top_right->m_Position), cVector.size()));
+    cVector.push_back(new RodConstraint(top_right, bottom_right, norm(top_right->m_Position - bottom_right->m_Position), cVector.size()));
+    cVector.push_back(new RodConstraint(top_left, bottom_right, norm(top_left->m_Position - bottom_right->m_Position), cVector.size()));
+    cVector.push_back(new RodConstraint(top_left, top_right, norm(top_left->m_Position - top_right->m_Position), cVector.size()));
+
+    fVector.push_back(new LinearForce(pVector, {0, -0.02}));
+    oVector.push_back(new Plane({0, -0.5}, {0.2, 1.0}, pVector, 0.05, 0.1));
+    oVector.push_back(new Plane({0, -0.5}, {-0.2, 1.0}, pVector, 0.05, 0.1));
+}
+
 void set_scene(int scene, std::vector<Particle *> &pVector, std::vector<Force *> &fVector,
                std::vector<Constraint *> &cVector, std::vector<CollideableObject *> &oVector, bool visualizeForces) {
     const double dist = 0.2;
@@ -126,7 +191,8 @@ void set_scene(int scene, std::vector<Particle *> &pVector, std::vector<Force *>
 
     switch (scene) {
         case 1:
-            rigid_body_scene(pVector, fVector, cVector, oVector, visualizeForces);
+            car_scene(pVector, fVector, cVector, oVector, visualizeForces);
+            //rigid_body_scene(pVector, fVector, cVector, oVector, visualizeForces);
             //currentSceneName = std::to_string(scene) + ". Pendulum";
 
             //pVector.push_back(new Particle(center + offset, visualizeForces, 0));
