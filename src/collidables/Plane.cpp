@@ -7,8 +7,9 @@
 #include <GL/glut.h>
 #endif
 
-Plane::Plane(const Vec2f &origin, const Vec2f &normal, std::vector<Particle *> particles, double epsilon,
-             double bounce) : CollideableObject(bounce), m_Origin(origin), m_Epsilon(epsilon) {
+Plane::Plane(const Vec2f &origin, const Vec2f &normal, double epsilon, double bounce, double friction_factor,
+             double slide_threshold) :
+    CollideableObject(bounce, friction_factor, slide_threshold), m_Origin(origin), m_Epsilon(epsilon) {
     m_Normal = normal / norm(normal);
 };
 

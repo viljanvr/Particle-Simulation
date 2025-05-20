@@ -128,13 +128,14 @@ SparseMatrix getForceJacobianV(const std::vector<Particle *> &pVector, const std
     return j;
 }
 
-void handle_collisions(const std::vector<CollideableObject *> &oVector, const std::vector<Particle *> &pVector) {
+void handle_collisions(const std::vector<CollideableObject *> &oVector, const std::vector<Particle *> &pVector,
+                       double dt) {
 
     for (auto o: oVector) {
         for (auto p: pVector) {
             if (o->is_particle_colliding(p)) {
                 Collision c = o->compute_collision_details(p);
-                o->bounce_particle(c);
+                o->bounce_particle(c, dt);
             }
         }
     }
@@ -153,5 +154,5 @@ void simulation_step(const std::vector<Particle *> &pVector, const std::vector<F
             [&]() { return getForceJacobianX(pVector, fVector); },
             [&]() { return getForceJacobianV(pVector, fVector); }, dt);
 
-    handle_collisions(oVector, pVector);
+    handle_collisions(oVector, pVector, dt);
 }
