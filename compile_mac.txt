@@ -3,5 +3,5 @@ Compile under MacOS
 
 - Install C/C++ and Makefile Tools packages, follow the instructions on: https://devblogs.microsoft.com/cppblog/now-announcing-makefile-support-in-visual-studio-code/ (Links to an external site.)
 - Using HomeBrew, install 'libpng'
-- To compile the project type make clean and then make. The final executable will be located in the bin subfolder.
+- To compile the project open a shell, type make clean and then make. If successful, the final executable will be located in the bin subfolder.
 

@@ -7,7 +7,6 @@ Compile under windows 10
   - msys-base
 - Add to the Path environment variable the installation locations of MinGW and Msys; typically:  
   - C:\MinGW\bin and C:\MinGW\msys\1.0\bin
+- To compile the project open a shell, type make clean and then make. If successful, the final executable will be located in the bin subfolder.
 
-- Go in the folder where you extracted the skeleton code, open a shell window and type make clean and then make. 
-  These commands should compile the skeleton project. If compilation succeeded, the executable project1.exe should be in the bin subfolder.
 
