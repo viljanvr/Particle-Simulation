@@ -323,8 +323,8 @@ static void key_func(unsigned char key, int x, int y) {
         case 'r':
         case 'R':
             integration_scheme = std::make_unique<RungeKuttaScheme>();
-            std::cout << "Switched to RangeKuttaScheme." << std::endl;
-            set_notification("Switched to RangeKuttaScheme");
+            std::cout << "Switched to RungeKuttaScheme." << std::endl;
+            set_notification("Switched to RungeKuttaScheme");
             break;
         case 'i':
         case 'I':

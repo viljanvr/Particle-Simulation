@@ -178,14 +178,15 @@ void force_scene(std::vector<Particle *> &pVector, std::vector<Force *> &fVector
     const Vec2f botRight(0.5, -0.5);
     const Vec2f botLeft(-0.5, -0.5);
     const Vec2f vOffset(0.0, 0.2);
+    const Vec2f hOffset(0.2, 0.0);
 
     // Double spring
     const Vec2f topLeft(-0.5, 0.25);
     pVector.push_back(new Particle(topLeft + 0 * vOffset, visualizeForces, pVector.size()));
     pVector.push_back(new Particle(topLeft + 1 * vOffset, visualizeForces, pVector.size()));
     pVector.push_back(new Particle(topLeft + 2 * vOffset, visualizeForces, pVector.size()));
-    fVector.push_back(new SpringForce(pVector[pVector.size() - 3], pVector[pVector.size() - 2], 0.1, 1.0, 0.5));
-    fVector.push_back(new SpringForce(pVector[pVector.size() - 2], pVector[pVector.size() - 1], 0.1, 1.0, 0.5));
+    fVector.push_back(new SpringForce(pVector[pVector.size() - 3], pVector[pVector.size() - 2], 0.1, 1.0, 0.1));
+    fVector.push_back(new SpringForce(pVector[pVector.size() - 2], pVector[pVector.size() - 1], 0.1, 1.0, 0.1));
 
     // Angular springs
     constexpr double total_height = 0.5;
@@ -195,7 +196,7 @@ void force_scene(std::vector<Particle *> &pVector, std::vector<Force *> &fVector
     pVector.push_back(new Particle(topRight + Vec2f(0, rod_length), visualizeForces, pVector.size()));
     pVector.push_back(new Particle(topRight + 2 * Vec2f(0, rod_length), visualizeForces, pVector.size()));
     fVector.push_back(new AngularSpringForce(pVector[pVector.size() - 3], pVector[pVector.size() - 2],
-                                             pVector[pVector.size() - 1], 90, 0.1, 0.05));
+                                             pVector[pVector.size() - 1], 90, 0.1, 0.01));
     cVector.push_back(
             new RodConstraint(pVector[pVector.size() - 3], pVector[pVector.size() - 2], rod_length, cVector.size()));
     cVector.push_back(
@@ -203,16 +204,18 @@ void force_scene(std::vector<Particle *> &pVector, std::vector<Force *> &fVector
 
     // FixedEndPointSpring
     pVector.push_back(new Particle(botLeft, visualizeForces, pVector.size()));
-    fVector.push_back(new FixedEndpointSpringForce(pVector[pVector.size() - 1], botLeft + vOffset, 0.1, 0.1, 0.05));
+    fVector.push_back(new FixedEndpointSpringForce(pVector[pVector.size() - 1], botLeft + vOffset, 0.1, 0.1, 0.01));
 
     // Gravitational
     pVector.push_back(new Particle(botRight, visualizeForces, pVector.size()));
     pVector.push_back(new Particle(botRight + vOffset, visualizeForces, pVector.size()));
-    fVector.push_back(new GravitationalForce({pVector[pVector.size() - 1], pVector[pVector.size() - 2]}, 0.0001));
+    pVector.push_back(new Particle(botRight + hOffset, visualizeForces, pVector.size(), 2.0));
+    fVector.push_back(new GravitationalForce(
+            {pVector[pVector.size() - 1], pVector[pVector.size() - 2], pVector[pVector.size() - 3]}, 0.0001));
 
     // Linear Force
     pVector.push_back(new Particle(Vec2f(0.0, 0.8), visualizeForces, pVector.size()));
-    fVector.push_back(new LinearForce({pVector[pVector.size() - 1]}, Vec2f(0.0, -0.001)));
+    fVector.push_back(new LinearForce({pVector[pVector.size() - 1]}, Vec2f(0.0, -0.002)));
 }
 
 void constraint_scene(std::vector<Particle *> &pVector, std::vector<Force *> &fVector,
@@ -249,8 +252,8 @@ void double_pendulum(std::vector<Particle *> &pVector, std::vector<Force *> &fVe
     pVector.push_back(new Particle(left + particles * Vec2f(0.001, rod_length), visualizeForces, pVector.size()));
     pVector.push_back(new Particle(right + particles * Vec2f(0.001, rod_length), visualizeForces, pVector.size()));
 
-    fVector.push_back(new LinearForce(pVector, Vec2f(0.00, -0.03)));
-    fVector.push_back(new QuadraticDragForce(right_particles, 1.0));
+    fVector.push_back(new LinearForce(pVector, Vec2f(0.00, -0.05)));
+    fVector.push_back(new QuadraticDragForce(right_particles, 4.0));
     cVector.push_back(new CircularWireConstraint(pVector[0], left, rod_length, cVector.size()));
     cVector.push_back(new CircularWireConstraint(pVector[1], right, rod_length, cVector.size()));
     for (size_t i = 1; i < particles; i++) {
