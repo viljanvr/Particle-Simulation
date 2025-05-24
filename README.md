@@ -19,6 +19,6 @@ Instructions are given here depending on operating system:
   - Euler: `e`
   - Midpoint: `m`
   - Runge Kutta: `r`
-  - Implicit Euler: `i`
+  - Implicit Euler: `i` (This does only work in scenes, that don't use any forces except Spring, Linear or QuadraticDrag)
 - Apply spring force to particle: click and hold `left mouse button`
 - Apply wind force: click and hold `right mouse button`
