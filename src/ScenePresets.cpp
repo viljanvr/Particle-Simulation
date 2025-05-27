@@ -23,7 +23,7 @@
 #include <GL/glut.h>
 #endif
 
-std::string currentSceneName = "Unnamed Scene";
+std::string current_scene_name = "Unnamed Scene";
 
 void three_body_problem_scene(std::vector<Particle *> &pVector, std::vector<Force *> &fVector,
                               std::vector<Constraint *> &cVector, bool visualizeForces) {
@@ -37,7 +37,7 @@ void three_body_problem_scene(std::vector<Particle *> &pVector, std::vector<Forc
 void hairy_head_scene(std::vector<Particle *> &pVector, std::vector<Force *> &fVector,
                       std::vector<Constraint *> &cVector, std::vector<CollideableObject *> &oVector,
                       bool visualizeForces) {
-    currentSceneName = "Hairy head";
+    current_scene_name = "Hairy head";
     double head_radius = 0.3;
     size_t hair_count = 10;
     // which percentage of the head circumference is used to attach hairs?
@@ -86,7 +86,7 @@ void hairy_head_scene(std::vector<Particle *> &pVector, std::vector<Force *> &fV
 void rigid_body_scene(std::vector<Particle *> &pVector, std::vector<Force *> &fVector,
                       std::vector<Constraint *> &cVector, std::vector<CollideableObject *> &oVector,
                       bool visualizeForces) {
-    currentSceneName = "Rigid-body-like constraint structure";
+    current_scene_name = "Rigid-body-like constraint structure";
     constructCloth({0.2 - 0.8, -0.2}, 4, 4, 0.1, true, true, pVector, fVector, cVector, visualizeForces);
     // fVector.push_back(new FixedEndpointSpringForce(pVector[0], {-1.1, 0.0}, 0.0, 0.5, 0.01));
     fVector.push_back(new FixedEndpointSpringForce(pVector[15], {1.1, 0.0}, 0.0, 0.5, 0.1));
@@ -98,7 +98,7 @@ void rigid_body_scene(std::vector<Particle *> &pVector, std::vector<Force *> &fV
 
 void collider_scene(std::vector<Particle *> &pVector, std::vector<Force *> &fVector, std::vector<Constraint *> &cVector,
                     std::vector<CollideableObject *> &oVector, bool visualizeForces) {
-    currentSceneName = "Collisions with planes and circles";
+    current_scene_name = "Collisions with planes and circles";
     pVector.push_back(new Particle({0.0, 1.0}, visualizeForces, pVector.size()));
     pVector.push_back(new Particle({0.05, 1.1}, visualizeForces, pVector.size()));
     pVector.push_back(new Particle({-0.05, 1.2}, visualizeForces, pVector.size()));
@@ -136,7 +136,7 @@ void add_wheel(Vec2f center, double radius, size_t particle_count, size_t spring
 
 void car_scene(std::vector<Particle *> &pVector, std::vector<Force *> &fVector, std::vector<Constraint *> &cVector,
                std::vector<CollideableObject *> &oVector, bool visualizeForces) {
-    currentSceneName = "Moving car";
+    current_scene_name = "Moving car";
     float left = -0.8;
     float right = -0.5;
     float bottom = 0.0;
@@ -172,7 +172,7 @@ void car_scene(std::vector<Particle *> &pVector, std::vector<Force *> &fVector, 
 
 void force_scene(std::vector<Particle *> &pVector, std::vector<Force *> &fVector, std::vector<Constraint *> &cVector,
                  std::vector<CollideableObject *> &oVector, bool visualizeForces) {
-    currentSceneName = "Forces";
+    current_scene_name = "Forces";
     // Starting positions
     const Vec2f topRight(0.5, 0.25);
     const Vec2f botRight(0.5, -0.5);
@@ -221,7 +221,7 @@ void force_scene(std::vector<Particle *> &pVector, std::vector<Force *> &fVector
 void constraint_scene(std::vector<Particle *> &pVector, std::vector<Force *> &fVector,
                       std::vector<Constraint *> &cVector, std::vector<CollideableObject *> &oVector,
                       bool visualizeForces) {
-    currentSceneName = "Constraints";
+    current_scene_name = "Constraints";
     // Circular constraint
     double radius = 0.3;
     pVector.push_back(new Particle(Vec2f(0.20, 0.0), visualizeForces, pVector.size()));
@@ -236,7 +236,7 @@ void constraint_scene(std::vector<Particle *> &pVector, std::vector<Force *> &fV
 void double_pendulum(std::vector<Particle *> &pVector, std::vector<Force *> &fVector,
                      std::vector<Constraint *> &cVector, std::vector<CollideableObject *> &oVector,
                      bool visualizeForces) {
-    currentSceneName = "None vs. Quadratic Drag Force";
+    current_scene_name = "None vs. Quadratic Drag Force";
     const double total_height = 0.5;
     const size_t particles = 3;
     const double rod_length = total_height / particles;
@@ -282,12 +282,12 @@ void set_scene(int scene, std::vector<Particle *> &pVector, std::vector<Force *>
             collider_scene(pVector, fVector, cVector, oVector, visualizeForces);
         } break;
         case 5: {
-            currentSceneName = "Cloth";
+            current_scene_name = "Cloth";
             constructCloth(Vec2f(0.0, 0.0), 8, 40, 0.045, true, false, pVector, fVector, cVector, visualizeForces);
             attachCloth(Vec2f(0.0, 0.0), 8, 40, 0.045, pVector, fVector, cVector, visualizeForces);
         } break;
         case 6: {
-            currentSceneName = "Cloth wall collision";
+            current_scene_name = "Cloth wall collision";
             constructCloth(Vec2f(0.0, 0.0), 20, 5, 0.045, true, false, pVector, fVector, cVector, visualizeForces);
             oVector.push_back(new Plane(Vec2f(0.9, 0.0), Vec2f(-1.0, 0.0), 0.04, 0.5));
         } break;
@@ -365,7 +365,7 @@ void set_scene(int scene, std::vector<Particle *> &pVector, std::vector<Force *>
             // } break;
 
         default:
-            currentSceneName = "Default: Single Particle";
+            current_scene_name = "Default: Single Particle";
             pVector.push_back(new Particle(center, visualizeForces, 0));
             break;
     }

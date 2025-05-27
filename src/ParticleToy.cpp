@@ -19,10 +19,13 @@
 #include <BlowForce.h>
 #include <LinearForce.h>
 #include <algorithm>
+#include <chrono>
 #include <cstddef>
 #include <cstring>
+#include <iomanip>
 #include <iostream>
 #include <memory>
+#include <sstream>
 #include <stdio.h>
 #include <stdlib.h>
 #include <vector>
@@ -63,8 +66,16 @@ static Force *mouse_interact_force;
 static BlowForce *mouse_blow_force;
 static std::unique_ptr<Particle> mouse_particle = std::make_unique<Particle>(Vec2f(mx, my), visualizeForces, 100);
 static std::unique_ptr<IntegrationScheme> integration_scheme = std::make_unique<RungeKuttaScheme>();
-extern std::string currentSceneName;
-static std::string notification = "";
+extern std::string current_scene_name;
+static std::string ui_notification = "";
+
+static bool display_metrics = true;
+static std::string ui_performance_metric = "";
+static float elapsed_total_simulation_time;
+static float elapsed_total_real_time;
+static float elapsed_step_real_time;
+static std::chrono::high_resolution_clock::time_point last_metric_update = std::chrono::high_resolution_clock::now();
+
 
 /*
 ----------------------------------------------------------------------
@@ -101,7 +112,10 @@ static void free_data() {
     mouse_interact_force = nullptr;
 }
 
-static void init_system(void) { set_scene(1, pVector, fVector, cVector, oVector, visualizeForces); }
+static void init_system(void) {
+    set_scene(1, pVector, fVector, cVector, oVector, visualizeForces);
+    ui_performance_metric = "Elapsed simulation time: --\nSimulation rate: --\nAvg simulation rate: --";
+}
 
 /*
 ----------------------------------------------------------------------
@@ -175,14 +189,24 @@ static int getBitmapStringWidth(const std::string &text, void *font) {
     return width;
 }
 
+std::vector<std::string> splitLines(const std::string &str) {
+    std::vector<std::string> lines;
+    std::istringstream ss(str);
+    std::string line;
+    while (std::getline(ss, line)) {
+        lines.push_back(line);
+    }
+    return lines;
+}
+
 static void draw_title() {
     void *font = GLUT_BITMAP_HELVETICA_18;
     // Center depends on string length
-    float centered_x = -static_cast<float>(getBitmapStringWidth(currentSceneName, font)) / static_cast<float>(win_x);
+    float centered_x = -static_cast<float>(getBitmapStringWidth(current_scene_name, font)) / static_cast<float>(win_x);
 
     glColor3f(1.0, 1.0, 1.0);
     glRasterPos2f(centered_x, 0.9);
-    for (char c: currentSceneName) {
+    for (char c: current_scene_name) {
         glutBitmapCharacter(font, c);
     }
 }
@@ -190,12 +214,30 @@ static void draw_title() {
 static void draw_notification() {
     void *font = GLUT_BITMAP_HELVETICA_12;
     // Center depends on string length
-    float centered_x = -static_cast<float>(getBitmapStringWidth(notification, font)) / static_cast<float>(win_x);
+    float centered_x = -static_cast<float>(getBitmapStringWidth(ui_notification, font)) / static_cast<float>(win_x);
 
     glColor3f(0.0, 1.0, 0.0);
     glRasterPos2f(centered_x, -0.95);
-    for (char c: notification) {
+    for (char c: ui_notification) {
         glutBitmapCharacter(font, c);
+    }
+}
+
+static void draw_simulation_rate() {
+    void *font = GLUT_BITMAP_HELVETICA_12;
+    // Center depends on string length
+    float x = 0.3;
+    float y = -0.8;
+    float line_height = 0.05;
+
+    auto lines = splitLines(ui_performance_metric);
+
+    glColor3f(0.0, 1.0, 1.0);
+    for (size_t i = 0; i < lines.size(); ++i) {
+        glRasterPos2f(x, y - i * line_height);
+        for (char c: lines[i]) {
+            glutBitmapCharacter(font, c);
+        }
     }
 }
 
@@ -273,11 +315,19 @@ static void remap_GUI() {
     }
 }
 
-static void clear_notification(int value) { notification = ""; }
+static void clear_notification(int value) { ui_notification = ""; }
 
 static void set_notification(std::string message) {
-    notification = message;
+    ui_notification = message;
     glutTimerFunc(3000, clear_notification, 0);
+}
+
+static void update_ui_performance_metric() {
+    std::ostringstream ss;
+    ss << std::fixed << std::setprecision(2) << "Elapsed simulation time: " << elapsed_total_simulation_time
+       << "\nSimulation rate: " << dt / elapsed_step_real_time
+       << "\nAvg simulation rate: " << elapsed_total_simulation_time / elapsed_total_real_time;
+    ui_performance_metric = ss.str();
 }
 
 
@@ -307,6 +357,10 @@ static void key_func(unsigned char key, int x, int y) {
 
         case ' ':
             dsim = !dsim;
+            if (dsim) {
+                elapsed_total_simulation_time = 0.0;
+                elapsed_total_real_time = 0.0;
+            }
             break;
         case 'e':
         case 'E':
@@ -338,12 +392,16 @@ static void key_func(unsigned char key, int x, int y) {
             for (auto particle: pVector) {
                 particle->m_forceVisualization = visualizeForces;
             }
+        case 'p':
+        case 'P':
+            display_metrics = !display_metrics;
+            break;
         default:
             if (std::isdigit(key)) {
                 dsim = 0;
                 clear_vector_data();
                 set_scene(key - '0', pVector, fVector, cVector, oVector, visualizeForces);
-                std::cout << "Switched to scene: " << currentSceneName << "." << std::endl;
+                std::cout << "Switched to scene: " << current_scene_name << "." << std::endl;
             }
     }
 }
@@ -383,7 +441,22 @@ static void reshape_func(int width, int height) {
 static void idle_func(void) {
     handle_user_interaction();
     if (dsim) {
+
+        auto start = std::chrono::high_resolution_clock::now();
+
         simulation_step(pVector, fVector, cVector, oVector, dt, *integration_scheme);
+
+        auto end = std::chrono::high_resolution_clock::now();
+
+        elapsed_step_real_time = std::chrono::duration<double>(end - start).count();
+        elapsed_total_real_time += elapsed_step_real_time;
+        elapsed_total_simulation_time += dt;
+
+        if (std::chrono::duration<double>(end - last_metric_update).count() > 0.05) {
+            update_ui_performance_metric();
+            last_metric_update = end;
+        }
+
     } else {
         remap_GUI();
     }
@@ -400,6 +473,8 @@ static void display_func(void) {
     draw_particles();
     draw_title();
     draw_notification();
+    if (display_metrics)
+        draw_simulation_rate();
 
     post_display();
 }
