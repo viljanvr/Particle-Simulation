@@ -13,6 +13,7 @@
 #include "Particle.h"
 #include "ScenePresets.h"
 #include "SpringForce.h"
+#include "SymplecticEulerScheme.h"
 #include "gfx/vec2.h"
 #include "imageio.h"
 
@@ -367,6 +368,12 @@ static void key_func(unsigned char key, int x, int y) {
             integration_scheme = std::make_unique<EulerScheme>();
             std::cout << "Switched to EulerScheme." << std::endl;
             set_notification("Switched to EulerScheme");
+            break;
+        case 's':
+        case 'S':
+            integration_scheme = std::make_unique<SymplecticEulerScheme>();
+            std::cout << "Switched to SymplecticEulerScheme." << std::endl;
+            set_notification("Switched to SymplecticEulerScheme");
             break;
         case 'm':
         case 'M':
