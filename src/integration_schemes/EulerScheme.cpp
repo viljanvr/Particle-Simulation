@@ -1,7 +1,7 @@
 #include "EulerScheme.h"
 
 void EulerScheme::updateParticlesBasedOnForce(std::vector<Particle *> particles, derivEvalFunction updateForces,
-                                                      JacobianFunction getJx, JacobianFunction getJv, float dt) {
+                                              JacobianFunction getJx, JacobianFunction getJv, float dt) {
     updateForces();
 
     for (auto particle: particles) {
